@@ -104,6 +104,34 @@ function providerInitializations(providerId = S.activeProvider) {
   return list;
 }
 
+// The archive masthead picker is broader than the per-provider picker: it
+// shows every historical initialization available on the archive page, grouped
+// by provider and stamped with its issue date. The live page intentionally
+// stays focused on current guidance and never shows historical choices.
+function availableRuns() {
+  const grouped = new Map();
+  S.cycles.forEach((cycle) => {
+    const provider = providerFor(cycle.hazard_source);
+    const key = `${provider.id}\u0000${cycle.issued_utc}`;
+    const entry = grouped.get(key) || {
+      providerId: provider.id,
+      providerLabel: provider.label,
+      issued: cycle.issued_utc,
+      time: Date.parse(cycle.issued_utc) || 0,
+      isLatest: Boolean(cycle.is_latest_initialization),
+      cycles: 0,
+      horizonHours: 0,
+    };
+    entry.cycles += 1;
+    entry.isLatest = entry.isLatest || Boolean(cycle.is_latest_initialization);
+    const horizon = Number(cycle.forecast_horizon_hours);
+    if (Number.isFinite(horizon)) entry.horizonHours = Math.max(entry.horizonHours, horizon);
+    grouped.set(key, entry);
+  });
+  return [...grouped.values()].sort((a, b) => b.time - a.time
+    || a.providerLabel.localeCompare(b.providerLabel));
+}
+
 // The initialization currently on screen for this provider: the pinned one if
 // it exists here, otherwise the latest.
 function activeInitialization(providerId = S.activeProvider) {
@@ -394,11 +422,26 @@ function wireEvents() {
       menu.hidden = !opening;
       initToggle.setAttribute('aria-expanded', String(opening));
     });
-    document.addEventListener('click', (event) => {
-      const picker = $('init-picker');
-      if (picker && !picker.contains(event.target)) closeInitMenu();
+  }
+
+  const runToggle = $('run-toggle');
+  if (runToggle) {
+    runToggle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const menu = $('run-menu');
+      const opening = menu.hidden;
+      if (opening) drawRunPicker();
+      menu.hidden = !opening;
+      runToggle.setAttribute('aria-expanded', String(opening));
     });
   }
+
+  document.addEventListener('click', (event) => {
+    const initPicker = $('init-picker');
+    if (initPicker && !initPicker.contains(event.target)) closeInitMenu();
+    const runPicker = $('run-picker');
+    if (runPicker && !runPicker.contains(event.target)) closeRunMenu();
+  });
 
   document.addEventListener('keydown', (event) => {
     if (event.code === 'Space' && !/INPUT|SELECT|BUTTON|TEXTAREA/.test(event.target.tagName)) {
@@ -410,6 +453,7 @@ function wireEvents() {
     if (event.key === 'Escape') {
       closeDrawer();
       closeInitMenu();
+      closeRunMenu();
       const dd = $('search-dropdown');
       if (dd) dd.hidden = true;
     }
@@ -478,6 +522,7 @@ function updateFrameNavigation() {
   $('cycle-next').disabled = position >= frames.length - 1;
   buildCycleDots();
   drawSourceSwitch();
+  drawRunPicker();
   drawInitPicker();
 }
 
@@ -1959,6 +2004,69 @@ function closeInitMenu() {
   if (!menu || !toggle) return;
   menu.hidden = true;
   toggle.setAttribute('aria-expanded', 'false');
+}
+
+function closeRunMenu() {
+  const menu = $('run-menu'), toggle = $('run-toggle');
+  if (!menu || !toggle) return;
+  menu.hidden = true;
+  toggle.setAttribute('aria-expanded', 'false');
+}
+
+function providerRunLabel(providerId, fallback) {
+  if (providerId === 'hrrr') return 'NOAA HRRR';
+  if (providerId === 'weathernext3') return 'WeatherNext 3';
+  if (providerId === 'weathernext2') return 'WeatherNext 2';
+  if (providerId === 'gfs') return 'NOAA GFS / GEFS';
+  return fallback;
+}
+
+function selectAvailableRun(run) {
+  closeRunMenu();
+  stopPlayback();
+  S.activeProvider = run.providerId;
+  // Live entries deliberately follow their provider's current run; archive
+  // entries pin the exact issued time because nothing there is "latest".
+  S.selectedInit = S.archiveMode || !run.isLatest ? run.issued : null;
+  const target = providerTargetIndex(run.providerId);
+  if (target != null) loadCycle(target);
+}
+
+function drawRunPicker() {
+  const picker = $('run-picker'), menu = $('run-menu'), label = $('run-label');
+  if (!picker || !menu || !label) return;
+  const runs = availableRuns();
+  picker.hidden = !S.archiveMode || runs.length < 2;
+  if (picker.hidden) { closeRunMenu(); return; }
+
+  label.textContent = 'Archived runs';
+  const heading = document.createElement('div');
+  heading.className = 'run-menu-group';
+  heading.textContent = 'Archived forecast initializations';
+
+  const rows = runs.map((run) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.setAttribute('role', 'option');
+    const active = run.providerId === S.activeProvider
+      && activeInitialization(run.providerId)?.issued === run.issued;
+    button.setAttribute('aria-selected', String(active));
+
+    const name = document.createElement('b');
+    name.textContent = `${providerRunLabel(run.providerId, run.providerLabel)} · ${formatInitStamp(run.issued)}`;
+    const tag = document.createElement('span');
+    tag.className = 'init-tag archived';
+    tag.textContent = 'archived';
+    name.append(tag);
+
+    const detail = document.createElement('em');
+    const horizon = run.horizonHours ? ` · ${Math.round(run.horizonHours / 24)}d horizon` : '';
+    detail.textContent = `${run.cycles} window${run.cycles === 1 ? '' : 's'}${horizon}`;
+    button.append(name, detail);
+    button.addEventListener('click', () => selectAvailableRun(run));
+    return button;
+  });
+  menu.replaceChildren(heading, ...rows);
 }
 
 function selectInitialization(issued) {

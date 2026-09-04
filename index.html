@@ -47,6 +47,16 @@
         Archive
       </a>
     </nav>
+    <div class="run-picker" id="run-picker" hidden>
+      <button type="button" id="run-toggle" class="theme-toggle run-toggle"
+              aria-haspopup="listbox" aria-expanded="false" aria-controls="run-menu"
+              title="Choose an available forecast initialization">
+        <span class="theme-icon" aria-hidden="true">◷</span>
+        <span id="run-label">Archived runs</span>
+        <span class="init-caret" aria-hidden="true">▾</span>
+      </button>
+      <div class="run-menu" id="run-menu" role="listbox" aria-label="Available forecast initializations" hidden></div>
+    </div>
     <div class="init-picker" id="init-picker" hidden>
       <button type="button" id="init-toggle" class="theme-toggle init-toggle"
               aria-haspopup="listbox" aria-expanded="false" aria-controls="init-menu"

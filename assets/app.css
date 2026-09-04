@@ -376,10 +376,12 @@ h3 {
    Sits beside the theme toggle and borrows its shape, because both are
    view controls rather than parts of the forecast itself. It only appears
    when the archive actually holds more than one initialization. */
-.init-picker {
+.init-picker,
+.run-picker {
   position: relative;
 }
-.init-toggle {
+.init-toggle,
+.run-toggle {
   font-family: var(--font-mono);
   letter-spacing: 0.02em;
 }
@@ -397,7 +399,8 @@ h3 {
 .init-picker[data-archived="true"] .theme-icon {
   color: var(--color-amber);
 }
-.init-menu {
+.init-menu,
+.run-menu {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
@@ -411,7 +414,8 @@ h3 {
   border-radius: var(--radius-md);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.38);
 }
-.init-menu-group {
+.init-menu-group,
+.run-menu-group {
   padding: 7px 9px 4px;
   font-size: 9px;
   font-weight: 700;
@@ -419,7 +423,8 @@ h3 {
   text-transform: uppercase;
   color: var(--ink-muted);
 }
-.init-menu button {
+.init-menu button,
+.run-menu button {
   display: flex;
   width: 100%;
   align-items: baseline;
@@ -434,29 +439,34 @@ h3 {
   cursor: pointer;
   transition: all 0.12s ease;
 }
-.init-menu button:hover {
+.init-menu button:hover,
+.run-menu button:hover {
   background: var(--bg-card-hover);
   color: var(--ink-primary);
 }
-.init-menu button[aria-selected="true"] {
+.init-menu button[aria-selected="true"],
+.run-menu button[aria-selected="true"] {
   border-color: var(--color-cyan);
   background: var(--color-cyan-glow);
   color: var(--color-cyan);
 }
-.init-menu b {
+.init-menu b,
+.run-menu b {
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 650;
   white-space: nowrap;
 }
-.init-menu em {
+.init-menu em,
+.run-menu em {
   font-size: 9px;
   font-style: normal;
   font-family: var(--font-mono);
   color: var(--ink-muted);
   white-space: nowrap;
 }
-.init-menu button[aria-selected="true"] em {
+.init-menu button[aria-selected="true"] em,
+.run-menu button[aria-selected="true"] em {
   color: inherit;
 }
 .init-tag {
@@ -493,7 +503,7 @@ h3 {
   border-style: dashed !important;
 }
 @media (max-width: 640px) {
-  .init-menu { right: auto; left: 0; min-width: 232px; }
+  .init-menu, .run-menu { right: auto; left: 0; min-width: 232px; }
   .mast { align-items: flex-start; }
   .mast-actions { flex-wrap: wrap; justify-content: flex-end; }
   .view-link { padding-inline: 7px; }

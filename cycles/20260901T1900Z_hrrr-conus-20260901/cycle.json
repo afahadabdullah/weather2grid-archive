@@ -4,7 +4,7 @@
   "event_name": "CONUS wind outlook",
   "issued_utc": "2026-09-01T19:00:00+00:00",
   "lead_hours": 0.0,
-  "age_hours": 73.61,
+  "age_hours": 73.84,
   "freshness": "not evaluated",
   "synthetic": false,
   "release_gate_passed": false,
