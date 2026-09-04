@@ -4,7 +4,7 @@
   "event_name": "Florence 2018 — hindcast",
   "issued_utc": "2018-09-13T08:00:00+00:00",
   "lead_hours": 0.0,
-  "age_hours": 69925.69,
+  "age_hours": 69925.74,
   "freshness": "not evaluated",
   "synthetic": false,
   "release_gate_passed": false,
