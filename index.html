@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Weather2Grid probabilistic weather-to-power-grid risk intelligence and decision support dashboard">
+<meta property="og:title" content="Weather2Grid — Probabilistic Grid Risk Intelligence">
+<meta property="og:description" content="Interactive weather-to-power-grid risk guidance with forecast-cycle animation, uncertainty, and decision thresholds.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://afahadabdullah.github.io/weather2grid/">
+<meta property="og:image" content="https://afahadabdullah.github.io/weather2grid/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Weather2Grid — Probabilistic Grid Risk Intelligence">
+<meta name="twitter:description" content="Interactive weather-to-power-grid risk guidance with forecast-cycle animation, uncertainty, and decision thresholds.">
+<meta name="twitter:image" content="https://afahadabdullah.github.io/weather2grid/og.png">
+<title>Weather2Grid — Probabilistic Grid Risk Intelligence</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%231d4e6f'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div id="banner" class="banner" role="alert" hidden></div>
+
+<header class="mast">
+  <div class="mast-left">
+    <a class="brand" href="./" aria-label="Weather2Grid home">
+      <span class="mark" aria-hidden="true"><i></i></span>
+      <div class="brand-text">
+        <strong>Weather2Grid</strong>
+        <small>Probabilistic Grid Risk Intelligence</small>
+      </div>
+    </a>
+    <div class="mast-status">
+      <span class="system-dot" aria-hidden="true"></span>
+      <span class="status-label">Operational Decision Support</span>
+      <span class="mast-divider"></span>
+      <span id="source-badge" class="badge-source">Loading source…</span>
+    </div>
+  </div>
+  <div class="mast-actions">
+    <nav class="view-switch" aria-label="Forecast view">
+      <a id="live-view-link" class="view-link" href="https://afahadabdullah.github.io/weather2grid/">
+        <span class="view-dot" aria-hidden="true"></span>
+        Live forecast
+      </a>
+      <a id="archive-view-link" class="view-link" href="https://afahadabdullah.github.io/weather2grid-archive/">
+        <span aria-hidden="true">◷</span>
+        Archive
+      </a>
+    </nav>
+    <div class="init-picker" id="init-picker" hidden>
+      <button type="button" id="init-toggle" class="theme-toggle init-toggle"
+              aria-haspopup="listbox" aria-expanded="false" aria-controls="init-menu"
+              title="Choose which forecast initialization to display">
+        <span class="theme-icon" aria-hidden="true">◷</span>
+        <span class="init-text" id="init-label">Latest</span>
+        <span class="init-caret" aria-hidden="true">▾</span>
+      </button>
+      <div class="init-menu" id="init-menu" role="listbox" aria-label="Forecast initializations" hidden></div>
+    </div>
+    <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle display theme" title="Switch between Command Center Dark and Corporate Office Light mode">
+      <span class="theme-icon" aria-hidden="true">◐</span>
+      <span class="theme-text">Theme</span>
+    </button>
+  </div>
+</header>
+
+<main class="workspace">
+  <section class="overview-head" aria-label="Active forecast">
+    <div class="overview-title-group">
+      <h1 id="event-name">Active Risk Outlook — Loading…</h1>
+    </div>
+    <div class="overview-source">
+      <span>Operational Hazard Source</span>
+      <strong id="overview-provider">Loading…</strong>
+    </div>
+  </section>
+
+  <section class="kpi-grid" aria-label="Regional risk summary">
+    <article class="kpi kpi-expected">
+      <div class="kpi-header">
+        <div class="kpi-label"><span class="kpi-icon cyan">∿</span>Regional Expected</div>
+        <span class="kpi-tag" id="kpi-expected-tag">Mean Impact</span>
+      </div>
+      <strong id="kpi-expected">—</strong>
+      <span id="kpi-expected-note">customers without power</span>
+    </article>
+    <article class="kpi kpi-p90">
+      <div class="kpi-header">
+        <div class="kpi-label"><span class="kpi-icon violet">↗</span>Regional P90</div>
+        <span class="kpi-tag violet">Tail Scenario</span>
+      </div>
+      <strong id="kpi-p90">—</strong>
+      <span>correlated regional extreme</span>
+    </article>
+    <article class="kpi kpi-threshold">
+      <div class="kpi-header">
+        <div class="kpi-label"><span class="kpi-icon amber">◎</span>Decision Threshold</div>
+        <span class="kpi-tag amber">Triggered</span>
+      </div>
+      <strong id="kpi-triggered">—</strong>
+      <span id="kpi-triggered-note">counties above your threshold</span>
+    </article>
+    <article class="kpi kpi-wind">
+      <div class="kpi-header">
+        <div class="kpi-label"><span class="kpi-icon red">◉</span><span id="kpi-gust-label">Peak Modeled Gust</span></div>
+        <span class="kpi-tag red">Hazard Max</span>
+      </div>
+      <strong id="kpi-gust">—</strong>
+      <span id="kpi-domain">forecast domain</span>
+    </article>
+  </section>
+
+  <section class="primary-grid">
+    <div class="main-stack">
+      <article class="panel map-panel">
+        <header class="panel-head map-head">
+          <div class="map-title-box">
+            <span class="eyebrow">Spatial Risk Canvas</span>
+            <h2 id="map-title">County Wind Field</h2>
+          </div>
+          <div class="layers" id="layers" role="tablist" aria-label="Map metric layer"></div>
+        </header>
+
+        <div class="map-toolbar">
+          <div class="map-toolbar-left">
+            <span id="map-domain" class="map-domain">Loading geography…</span>
+            <div class="view-controls" id="view-controls" aria-label="Map extent">
+              <button type="button" data-view="conus" aria-pressed="false" title="View Full Contiguous United States">CONUS</button>
+              <button type="button" data-view="event" aria-pressed="true" title="Zoom to Event Footprint">Event</button>
+              <button type="button" data-view="storm" aria-pressed="false" title="Zoom to Active Storm Track">Storm</button>
+              <button type="button" data-view="focus" aria-pressed="false" title="Center on Highest Outage Risk County">Focus Max</button>
+            </div>
+          </div>
+
+          <div class="map-toolbar-search">
+            <div class="search-input-wrap">
+              <span class="search-icon" aria-hidden="true">🔍</span>
+              <input type="search" id="county-search" placeholder="Search county or state…" autocomplete="off" spellcheck="false" aria-label="Search county or state">
+              <div id="search-dropdown" class="search-dropdown" hidden></div>
+            </div>
+          </div>
+
+          <div class="map-toolbar-right">
+            <div class="overlay-controls" aria-label="Map overlays">
+              <button type="button" data-overlay="threshold" aria-pressed="true" title="Toggle Threshold Trigger Highlights"><i class="trig-key"></i>Triggered</button>
+              <button type="button" data-overlay="states" aria-pressed="true" title="Toggle State Boundaries"><i class="state-key"></i>States</button>
+              <button type="button" data-overlay="track" aria-pressed="true" title="Toggle WeatherNext AI Cyclone Tracks"><i class="line-key"></i>WeatherNext Track</button>
+              <button type="button" data-overlay="nhc" aria-pressed="false" title="Toggle Official NOAA NHC Cyclone Tracks (Turned off by default)"><i class="nhc-key"></i>NOAA NHC</button>
+              <button type="button" data-overlay="wind" aria-pressed="true" title="Toggle Wind Radii / Swaths"><i class="ring-key"></i>Wind radii</button>
+              <button type="button" data-overlay="extrapolation" aria-pressed="false" title="Hatches counties outside model training envelope"><i class="hatch-key"></i>Extrapolation</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mapwrap" id="mapwrap">
+          <canvas id="map" class="map-canvas" role="img" aria-label="County outage risk map" tabindex="0"></canvas>
+          <div id="map-tooltip" class="map-tooltip" hidden></div>
+          <div class="storm-chip" id="storm-chip" hidden></div>
+
+          <div class="zoom-controls" aria-label="Zoom controls">
+            <button type="button" id="zoom-in" aria-label="Zoom in" title="Zoom in (+)">+</button>
+            <button type="button" id="zoom-out" aria-label="Zoom out" title="Zoom out (−)">−</button>
+            <button type="button" id="zoom-reset" aria-label="Reset extent" title="Reset extent (0)">⤢</button>
+          </div>
+
+          <div class="legend" id="legend"></div>
+          <div class="maphint">Drag to pan · Scroll to zoom · Hover or click county for distribution</div>
+        </div>
+
+        <section class="map-playback" aria-label="Forecast playback controls">
+          <div class="source-switch" id="source-switch" role="tablist" aria-label="Forecast data source"></div>
+          <div class="playback-summary">
+            <div class="frame-time">
+              <strong id="cycle-time">—</strong>
+              <span id="cycle-init">—</span>
+            </div>
+            <span id="cycle-counter" class="cycle-counter">Forecast — of —</span>
+          </div>
+
+          <div class="playback-row">
+            <div class="transport">
+              <button type="button" id="cycle-prev" class="icon-button" aria-label="Previous forecast frame" title="Previous frame ([)">←</button>
+              <button type="button" id="cycle-play" class="play-button" aria-label="Play forecast frames" aria-pressed="false" title="Play/Pause (Space)"><span aria-hidden="true">▶</span><b>Play</b></button>
+              <button type="button" id="cycle-next" class="icon-button" aria-label="Next forecast frame" title="Next frame (])">→</button>
+              <button type="button" id="cycle-loop" class="icon-button loop-button" aria-label="Toggle loop playback" aria-pressed="true" title="Loop animation (L)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></button>
+            </div>
+            <div class="cyclebar">
+              <input type="range" id="cycle" min="0" max="0" value="0" step="1" aria-label="Forecast frame slider">
+              <div id="cycle-dots" class="cycle-dots" aria-hidden="true"></div>
+            </div>
+          </div>
+
+          <div class="cycle-meta">
+            <span id="cycle-lead">—</span>
+            <span id="frame-note" class="frame-note">—</span>
+            <span class="pill" id="freshness">—</span>
+            <label class="speed-label" for="playback-speed">Speed</label>
+            <select id="playback-speed" aria-label="Playback speed">
+              <option value="1400">1×</option>
+              <option value="800" selected>2×</option>
+              <option value="450">3×</option>
+            </select>
+          </div>
+        </section>
+      </article>
+
+      <section class="left-analysis-grid" aria-label="Risk analysis">
+        <article class="panel priority-panel">
+          <header class="panel-head">
+            <div>
+              <span class="eyebrow">Operational Focus</span>
+              <h2>Priority Counties</h2>
+            </div>
+            <div class="panel-actions">
+              <button type="button" id="export-priority" class="action-btn" title="Download priority counties as CSV">↓ Export CSV</button>
+            </div>
+          </header>
+          <div class="table-wrap">
+            <table aria-label="Priority counties ranking">
+              <thead>
+                <tr>
+                  <th>County</th>
+                  <th>Expected Out</th>
+                  <th>P90 Out</th>
+                  <th>P(&gt;5%)</th>
+                  <th>Confidence</th>
+                </tr>
+              </thead>
+              <tbody id="priority-table"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel uncertainty-panel">
+          <header class="panel-head">
+            <div>
+              <span class="eyebrow">Model Diagnostics</span>
+              <h2>Uncertainty Attribution</h2>
+            </div>
+            <div class="split-legend">
+              <span><i class="weather"></i>Weather spread</span>
+              <span><i class="impact"></i>Impact model</span>
+            </div>
+          </header>
+          <div class="panel-body">
+            <p class="explain">Percentage-point spread for highest-risk counties. The larger component is the higher-leverage target for new information.</p>
+            <div class="split" id="split"></div>
+          </div>
+        </article>
+      </section>
+    </div>
+
+    <aside class="rail">
+      <section class="panel forecast-panel">
+        <header class="panel-head">
+          <div>
+            <span class="eyebrow">Hazard Context</span>
+            <h2>Forecast System</h2>
+          </div>
+          <span class="source-status" id="provider-status">—</span>
+        </header>
+        <div class="forecast-body">
+          <div class="storm-identity">
+            <div class="storm-symbol" id="storm-symbol" aria-hidden="true"><i></i><b>L</b></div>
+            <div>
+              <strong id="storm-class">No track supplied</strong>
+              <span id="storm-name">—</span>
+            </div>
+          </div>
+          <div class="storm-stats" id="storm-stats"></div>
+          <div class="active-source-line"><b id="active-source">Current product</b></div>
+          <div class="source-stack" id="source-stack" role="group" aria-label="Forecast sources in this archive"></div>
+        </div>
+      </section>
+
+      <section class="panel decision-panel">
+        <header class="panel-head">
+          <div>
+            <span class="eyebrow">Action Lens</span>
+            <h2>Cost / Loss Threshold</h2>
+          </div>
+          <output id="ratio-val">0.15</output>
+        </header>
+        <div class="panel-body">
+          <p class="explain">Act where <em>P(outage &gt; 5%) &gt; C/L</em>. Move threshold to match asset vulnerability and pre-positioning economics.</p>
+          <input type="range" id="ratio" min="-1.7" max="0" step="0.01" value="-0.82" aria-label="Cost loss ratio">
+          <div class="threshold-row">
+            <div>
+              <strong id="trig-count">—</strong>
+              <span>counties clear threshold</span>
+            </div>
+            <span id="threshold-pct">— of domain</span>
+          </div>
+          <svg id="clcurve" class="spark" role="img" aria-label="Counties triggered against cost-loss ratio"></svg>
+        </div>
+      </section>
+
+      <section class="panel tail-panel">
+        <header class="panel-head">
+          <div>
+            <span class="eyebrow">Joint Scenarios</span>
+            <h2>Regional Tail Risk</h2>
+          </div>
+        </header>
+        <div class="panel-body">
+          <div class="tail-compare">
+            <span id="tail-joint" style="--w:100%"><i></i><b>Joint P90</b><em>—</em></span>
+            <span id="tail-independent" style="--w:70%"><i></i><b>Independent sum</b><em>—</em></span>
+          </div>
+          <p class="model-note" id="tail-note">Shared storm effects preserve correlated regional extremes.</p>
+        </div>
+      </section>
+
+      <section class="panel provenance-panel">
+        <header class="panel-head">
+          <div>
+            <span class="eyebrow">Audit Trail</span>
+            <h2>Product Provenance</h2>
+          </div>
+        </header>
+        <dl class="prov" id="prov"></dl>
+      </section>
+    </aside>
+  </section>
+</main>
+
+<div class="drawer" id="drawer" hidden>
+  <div class="drawer-accent"></div>
+  <div class="drawer-head">
+    <div>
+      <span class="eyebrow">County Risk Assessment</span>
+      <h2 id="d-name">—</h2>
+      <p id="d-sub">—</p>
+    </div>
+    <button id="d-close" aria-label="Close county detail">×</button>
+  </div>
+  <div class="drawer-body">
+    <div class="stats" id="d-stats"></div>
+    <h3>Predictive Distribution CDF</h3>
+    <svg id="d-cdf" role="img" aria-label="Predictive quantiles"></svg>
+    <p class="explain" id="d-cdfnote"></p>
+    <h3>Operational Drivers</h3>
+    <dl class="prov drawer-prov" id="d-drivers"></dl>
+  </div>
+</div>
+
+<footer class="foot">
+  <span>Weather2Grid · Probabilistic Weather-to-Power-Grid Decision Intelligence</span>
+  <span>Operational research guidance · Verify with official National Weather Service / NHC directives for life safety.</span>
+</footer>
+<script src="assets/app.js"></script>
+</body>
+</html>

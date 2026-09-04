@@ -1,0 +1,6 @@
+{
+  "available": false,
+  "provider": "PowerOutage.us",
+  "reason": "Live observed outage data is disabled until a licensed server-side API integration is configured.",
+  "forecast_data_remains_separate": true
+}
