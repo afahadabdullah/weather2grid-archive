@@ -1,0 +1,16 @@
+.DS_Store
+
+# The evaluation/ directory is a StormGrid run bundle -- the input the
+# publish scripts read, not something meant to live in git history. Only the
+# small artifacts the white paper links to are tracked; the parquet tables,
+# the per-cycle dashboard staging tree (duplicated by cycles/ once
+# published), and the tarball stay local and out of the repo.
+evaluation/*/dashboard/
+evaluation/*/*.parquet
+evaluation/*/*.manifest.json
+evaluation/*/*.tar.gz
+evaluation/*/*.tar.gz.sha256
+evaluation/*/evaluation_matrix.json
+evaluation/*/event_identity_map.json
+evaluation/*/models/*/*.parquet
+evaluation/*/models/*/*.manifest.json

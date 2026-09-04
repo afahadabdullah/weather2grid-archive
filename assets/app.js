@@ -119,6 +119,10 @@ function availableRuns() {
       issued: cycle.issued_utc,
       time: Date.parse(cycle.issued_utc) || 0,
       isLatest: Boolean(cycle.is_latest_initialization),
+      // A run is identified in the archive picker by what it IS, and a
+      // hindcast is identified by its storm rather than by an issue time.
+      kind: String(cycle.product_kind || 'forecast'),
+      eventName: cycle.event_name || '',
       cycles: 0,
       horizonHours: 0,
     };
@@ -1990,6 +1994,16 @@ function formatInitStamp(issued) {
   return `${months[date.getUTCMonth()]} ${date.getUTCDate()} ${String(date.getUTCHours()).padStart(2, '0')}Z`;
 }
 
+// A hindcast verifies a storm that happened years ago, so its stamp carries
+// the year. A forecast initialization's does not: everything in that list is
+// days old at most, and the year would be noise on every row.
+function formatEventStamp(issued) {
+  const date = new Date(issued);
+  if (Number.isNaN(+date)) return String(issued || 'unknown');
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${months[date.getUTCMonth()]} ${date.getUTCDate()} ${date.getUTCFullYear()}`;
+}
+
 function initAgeLabel(issued) {
   const date = new Date(issued);
   if (Number.isNaN(+date)) return '';
@@ -2032,41 +2046,76 @@ function selectAvailableRun(run) {
   if (target != null) loadCycle(target);
 }
 
+// The context bar exists only to hold these two pickers, so it is never
+// shown on its own: it mirrors whichever of them currently has content.
+function syncContextBar() {
+  const bar = $('context-bar');
+  if (!bar) return;
+  const run = $('run-picker'), init = $('init-picker');
+  bar.hidden = (!run || run.hidden) && (!init || init.hidden);
+}
+
 function drawRunPicker() {
   const picker = $('run-picker'), menu = $('run-menu'), label = $('run-label');
   if (!picker || !menu || !label) return;
   const runs = availableRuns();
   picker.hidden = !S.archiveMode || runs.length < 2;
-  if (picker.hidden) { closeRunMenu(); return; }
+  if (picker.hidden) { closeRunMenu(); syncContextBar(); return; }
 
   label.textContent = 'Archived runs';
-  const heading = document.createElement('div');
-  heading.className = 'run-menu-group';
-  heading.textContent = 'Archived forecast initializations';
 
-  const rows = runs.map((run) => {
+  // An archived forecast and a hindcast are different kinds of thing, so the
+  // menu groups them instead of interleaving by date: one is an older view of
+  // a real forecast, the other a measurement of a storm that has already
+  // happened. Naming a hindcast by its issue time -- "Sep 29 02Z" -- says
+  // nothing about which storm it verifies, so it is named by the storm.
+  const runRow = (run) => {
     const button = document.createElement('button');
     button.type = 'button';
     button.setAttribute('role', 'option');
     const active = run.providerId === S.activeProvider
       && activeInitialization(run.providerId)?.issued === run.issued;
     button.setAttribute('aria-selected', String(active));
+    const hindcast = run.kind === 'hindcast';
 
     const name = document.createElement('b');
-    name.textContent = `${providerRunLabel(run.providerId, run.providerLabel)} · ${formatInitStamp(run.issued)}`;
+    name.textContent = hindcast
+      ? String(run.eventName || '').replace(/\s*\u2014\s*hindcast$/i, '') || formatEventStamp(run.issued)
+      : `${providerRunLabel(run.providerId, run.providerLabel)} \u00b7 ${formatInitStamp(run.issued)}`;
     const tag = document.createElement('span');
-    tag.className = 'init-tag archived';
-    tag.textContent = 'archived';
+    tag.className = `init-tag${hindcast ? ' hindcast' : ' archived'}`;
+    tag.textContent = hindcast ? 'hindcast' : 'archived';
     name.append(tag);
 
     const detail = document.createElement('em');
-    const horizon = run.horizonHours ? ` · ${Math.round(run.horizonHours / 24)}d horizon` : '';
-    detail.textContent = `${run.cycles} window${run.cycles === 1 ? '' : 's'}${horizon}`;
+    const horizon = run.horizonHours ? ` \u00b7 ${Math.round(run.horizonHours / 24)}d horizon` : '';
+    detail.textContent = hindcast
+      ? `verified against observed outages \u00b7 ${formatEventStamp(run.issued)}`
+      : `${run.cycles} window${run.cycles === 1 ? '' : 's'}${horizon}`;
     button.append(name, detail);
     button.addEventListener('click', () => selectAvailableRun(run));
     return button;
-  });
-  menu.replaceChildren(heading, ...rows);
+  };
+
+  const groupHeading = (text) => {
+    const heading = document.createElement('div');
+    heading.className = 'run-menu-group';
+    heading.textContent = text;
+    return heading;
+  };
+
+  const forecasts = runs.filter((run) => run.kind !== 'hindcast');
+  const hindcasts = runs.filter((run) => run.kind === 'hindcast');
+  const children = [];
+  if (forecasts.length) {
+    children.push(groupHeading('Archived forecast initializations'),
+                  ...forecasts.map(runRow));
+  }
+  if (hindcasts.length) {
+    children.push(groupHeading('Hindcast verification \u2014 scored against observed outages'),
+                  ...hindcasts.map(runRow));
+  }
+  menu.replaceChildren(...children);  syncContextBar();
 }
 
 function selectInitialization(issued) {
@@ -2090,7 +2139,7 @@ function drawInitPicker() {
   // One initialization is not a choice; hide the control rather than offer a
   // menu with a single disabled row.
   picker.hidden = list.length < 2;
-  if (picker.hidden) { closeInitMenu(); return; }
+  if (picker.hidden) { closeInitMenu(); syncContextBar(); return; }
 
   const active = activeInitialization();
   const hindcast = Boolean(active && active.kind === 'hindcast');
@@ -2139,7 +2188,7 @@ function drawInitPicker() {
     button.addEventListener('click', () => selectInitialization(entry.issued));
     return button;
   });
-  menu.replaceChildren(heading, ...rows);
+  menu.replaceChildren(heading, ...rows);  syncContextBar();
 }
 
 function drawSourceSwitch() {

@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Hindcast evaluation of the Weather2Grid county outage-risk model: ten landfalling tropical cyclones, three candidate impact models, leave-one-event-out replay.">
+<title>Weather2Grid &#8212; Hindcast evaluation of the county outage-risk model</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%231d4e6f'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/app.css">
+<style>
+:root { --paper-max: 900px; }
+body.paper-body { min-height: 100vh; background: var(--bg-app); }
+.paper-body .mast { position: sticky; top: 0; z-index: 20; }
+main.paper {
+  max-width: var(--paper-max);
+  margin: 0 auto;
+  padding: 40px clamp(18px, 4vw, 32px) 72px;
+  font-size: 15px;
+  line-height: 1.62;
+  color: var(--ink-primary);
+}
+.paper p { margin: 0 0 16px; color: var(--ink-primary); }
+.paper p.lede { font-size: 17px; line-height: 1.6; color: var(--ink-primary); }
+.paper h1 { font-size: clamp(26px, 3.4vw, 34px); line-height: 1.2; margin: 6px 0 14px; }
+.paper h2 {
+  font-size: 19px; font-weight: 700; letter-spacing: -0.01em;
+  margin: 44px 0 12px; padding-top: 18px;
+  border-top: 1px solid var(--border-subtle);
+}
+.paper h3 {
+  font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-muted); margin: 28px 0 8px;
+}
+.paper a { color: var(--color-cyan); text-decoration: none; border-bottom: 1px solid var(--border-strong); }
+.paper a:hover { border-bottom-color: var(--color-cyan); }
+.paper strong { font-weight: 650; }
+.paper code, .mono { font-family: var(--font-mono); font-size: 0.88em; }
+.paper code { background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1px 5px; }
+.doc-meta {
+  display: flex; flex-wrap: wrap; gap: 6px 18px;
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-muted);
+  margin: 0 0 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border-subtle);
+}
+.wp-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 26px 0 34px; }
+.wp-kpi { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px 16px; }
+.wp-kpi .wp-kpi-value { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+.wp-kpi .wp-kpi-label { display: block; margin-top: 6px; font-size: 11px; color: var(--ink-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.wp-kpi .wp-kpi-note { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-secondary); }
+figure { margin: 26px 0 30px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 18px 18px 14px; }
+figure.split { display: grid; grid-template-columns: minmax(320px, 1.05fr) minmax(240px, 1fr); gap: 20px; align-items: start; }
+figure .fig-body { min-width: 0; }
+figcaption { margin-top: 12px; font-size: 12.5px; line-height: 1.55; color: var(--ink-secondary); }
+figcaption b { color: var(--ink-primary); font-weight: 650; }
+svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+svg.chart .grid { stroke: var(--border-subtle); stroke-width: 1; }
+svg.chart .axis { stroke: var(--border-strong); stroke-width: 1; }
+svg.chart .reference { stroke: var(--ink-muted); stroke-width: 1; opacity: 0.75; }
+svg.chart .reference.dashed { stroke-dasharray: 5 4; }
+svg.chart .reference-label, svg.chart .tick, svg.chart .axis-label, svg.chart .row-label, svg.chart .value {
+  font-family: var(--font-sans); fill: var(--ink-muted);
+}
+svg.chart .tick { font-size: 11px; }
+svg.chart .tick.muted { font-size: 10px; opacity: 0.7; }
+svg.chart .reference-label { font-size: 10.5px; letter-spacing: 0.04em; }
+svg.chart .axis-label { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+svg.chart .row-label { font-size: 12.5px; fill: var(--ink-secondary); }
+svg.chart .value { font-size: 11.5px; fill: var(--ink-secondary); font-family: var(--font-mono); }
+svg.chart .ring { stroke: var(--bg-card); stroke-width: 2; }
+.wp-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 2px 0 10px; font-size: 12px; color: var(--ink-secondary); }
+.wp-legend .wp-key { display: inline-flex; align-items: center; gap: 7px; }
+.wp-legend .wp-key i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+.table-wrap { overflow-x: auto; margin: 20px 0 26px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+caption { text-align: left; padding: 12px 14px 10px; font-size: 12.5px; color: var(--ink-secondary); border-bottom: 1px solid var(--border-subtle); }
+caption b { color: var(--ink-primary); font-weight: 650; }
+th, td { padding: 8px 12px; text-align: right; border-bottom: 1px solid var(--border-subtle); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+thead th { font-size: 10.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-muted); font-weight: 700; background: var(--bg-subtle); }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr.is-published { background: var(--bg-card-hover); }
+td.num, th.num { font-family: var(--font-mono); }
+td .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 8px; vertical-align: baseline; }
+.callout { border: 1px solid var(--border-subtle); border-left: 3px solid var(--color-amber); background: var(--bg-card); border-radius: var(--radius-md); padding: 14px 18px; margin: 24px 0; }
+.callout p:last-child { margin-bottom: 0; }
+.callout .callout-title { display: block; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-amber); font-weight: 750; margin-bottom: 6px; }
+.paper ul, .paper ol { margin: 0 0 18px; padding-left: 22px; }
+.paper li { margin-bottom: 9px; }
+.paper li::marker { color: var(--ink-muted); }
+dl.facts { display: grid; grid-template-columns: minmax(150px, auto) 1fr; gap: 8px 18px; margin: 0 0 20px; font-size: 13px; }
+dl.facts dt { color: var(--ink-muted); }
+dl.facts dd { margin: 0; font-family: var(--font-mono); font-size: 12px; word-break: break-all; color: var(--ink-secondary); }
+.foot.paper-foot { max-width: var(--paper-max); margin: 0 auto; }
+@media (max-width: 760px) {
+  figure.split { grid-template-columns: 1fr; }
+  main.paper { font-size: 14.5px; }
+}
+@media print {
+  .mast, .paper-foot { display: none; }
+  main.paper { max-width: none; padding: 0; }
+  figure, .table-wrap, .wp-kpi, .callout { break-inside: avoid; }
+}
+</style>
+<script>
+(function () {
+  try {
+    var stored = localStorage.getItem('w2g_theme');
+    document.documentElement.setAttribute('data-theme', stored === 'light' ? 'light' : 'dark');
+  } catch (error) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+</script>
+</head>
+<body class="paper-body">
+<header class="mast">
+  <div class="mast-left">
+    <a class="brand" href="https://afahadabdullah.github.io/weather2grid/" aria-label="Weather2Grid home">
+      <span class="mark" aria-hidden="true"><i></i></span>
+      <div class="brand-text">
+        <strong>Weather2Grid</strong>
+        <small>Hindcast evaluation</small>
+      </div>
+    </a>
+  </div>
+  <div class="mast-actions">
+    <nav class="view-switch" aria-label="Site sections">
+      <a class="view-link" href="https://afahadabdullah.github.io/weather2grid/">
+        <span class="view-dot" aria-hidden="true"></span>
+        Live forecast
+      </a>
+      <a class="view-link" href="https://afahadabdullah.github.io/weather2grid-archive/">
+        <span aria-hidden="true">&#9727;</span>
+        Archive
+      </a>
+      <a class="view-link" href="evaluation.html" aria-current="page">
+        <span aria-hidden="true">&#9636;</span>
+        Evaluation
+      </a>
+    </nav>
+    <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle display theme"
+            title="Switch between Command Center Dark and Corporate Office Light mode">
+      <span class="theme-icon" aria-hidden="true">&#9788;</span>
+    </button>
+  </div>
+</header>
+<main class="paper">
+<span class="eyebrow">Weather2Grid technical note</span>
+<h1>Hindcast evaluation of the county outage-risk model</h1>
+<div class="doc-meta">
+  <span>Evaluation run <b class="mono">prism-37922961</b></span>
+  <span>Generated 2026-09-04 21:03:47 UTC</span>
+  <span>Code version 0.0.1</span>
+  <span>Hazard basis: analysed</span>
+</div>
+
+<p class="lede">Ten United States landfalling tropical cyclones between 2016 and 2023 were
+replayed through three candidate impact models, each storm withheld from the training pool
+before its own outages were predicted. Every model beats climatology by roughly a quarter of
+a CRPS, none of the three is distinguishable from the others on ten storms, and all three
+under-predict how many customers actually lose power. The model whose hindcasts are published
+to the dashboard, <b>baseline B+</b>, produces the sharpest point predictions in the
+set and the worst-calibrated intervals.</p>
+
+<div class="wp-kpis">
+  <div class="wp-kpi"><div class="wp-kpi-value">10</div><span class="wp-kpi-label">Storms scored</span><span class="wp-kpi-note">2016&#8211;2023, all matched to HURDAT2</span></div>
+  <div class="wp-kpi"><div class="wp-kpi-value">1,838</div><span class="wp-kpi-label">County&#8211;events</span><span class="wp-kpi-note">each with an observed outage fraction</span></div>
+  <div class="wp-kpi"><div class="wp-kpi-value">0.24</div><span class="wp-kpi-label">CRPSS, published model</span><span class="wp-kpi-note">skill over climatology, 0 = no better</span></div>
+  <div class="wp-kpi"><div class="wp-kpi-value">46%</div><span class="wp-kpi-label">90% interval coverage</span><span class="wp-kpi-note">nominal is 90% &#8212; intervals are too narrow</span></div>
+</div>
+
+<h2>1. What this measures &#8212; and what it deliberately does not</h2>
+<p>The scores below were computed on the <b>analysed hazard</b>: each county's wind field comes
+from the reanalysed record of what the storm actually did, not from a forecast of it. The
+evaluation therefore isolates the impact model &#8212; the step that turns gust and duration
+into a distribution over the fraction of customers out &#8212; and excludes every source of
+forecast error ahead of it. A live Weather2Grid forecast inherits both, so the skill reported
+here is an <em>upper bound</em> on end-to-end forecast skill, never a substitute for it.</p>
+<p>Each storm was scored under leave-one-event-out replay: the storm being predicted was
+removed from the fitting pool, so a model never sees the event it is asked to forecast. That
+is why every scorecard row shows a training pool of about 1,542
+events out of 1,543 rather than the whole set.</p>
+
+<div class="callout">
+  <span class="callout-title">Status of the underlying product</span>
+  <p>These hindcasts run in verification mode with the release gate not passed and the
+  degraded-mode flag set, the same status the live dashboard reports. The evaluation is
+  research output about a research product; nothing here makes it operational guidance.</p>
+</div>
+
+<h2>2. Data and event identity</h2>
+<p>The fitting set holds 45,743 county&#8211;event rows over
+1,547 outage events; 45,740 rows and
+1,543 events survive the evaluation filter. Scoring covers
+1,838 county&#8211;events across the ten storms, each with an observed outage
+fraction to score against.</p>
+<p>Storm identity is resolved before any scoring: an outage event carries its own opaque
+identifier, so it has to be matched to a named best track or the results cannot be attributed
+to a storm at all. Every requested storm matched a HURDAT2 track, four of them across two
+outage events that belong to the same system. The closest approach between event and track
+ranged from 2.5 km to
+31.7 km, comfortably inside each
+event's match radius.</p>
+<div class="table-wrap"><table><caption><b>Table 4.</b> Event identity. Every scored storm was matched to a HURDAT2 best track before scoring, so a storm's outage events, its hazard field and its name all refer to the same system. Distance is the closest approach between the outage event and the best track; the radius is the match tolerance that event was allowed.</caption><thead><tr><th class="" scope="col">Storm</th><th class="" scope="col">HURDAT2</th><th class="" scope="col">Status</th><th class="num" scope="col">Outage events</th><th class="num" scope="col">Track distance</th><th class="num" scope="col">Match radius</th></tr></thead><tbody><tr><td class="">Matthew 2016</td><td class=""><span class="mono">AL142016</span></td><td class="">matched</td><td class="num">2</td><td class="num">31.7 km</td><td class="num">539 km</td></tr><tr><td class="">Harvey 2017</td><td class=""><span class="mono">AL092017</span></td><td class="">matched</td><td class="num">1</td><td class="num">13.7 km</td><td class="num">428 km</td></tr><tr><td class="">Irma 2017</td><td class=""><span class="mono">AL112017</span></td><td class="">matched</td><td class="num">1</td><td class="num">14.1 km</td><td class="num">817 km</td></tr><tr><td class="">Florence 2018</td><td class=""><span class="mono">AL062018</span></td><td class="">matched</td><td class="num">1</td><td class="num">6.4 km</td><td class="num">465 km</td></tr><tr><td class="">Michael 2018</td><td class=""><span class="mono">AL142018</span></td><td class="">matched</td><td class="num">1</td><td class="num">2.7 km</td><td class="num">891 km</td></tr><tr><td class="">Isaias 2020</td><td class=""><span class="mono">AL092020</span></td><td class="">matched</td><td class="num">2</td><td class="num">8.6 km</td><td class="num">428 km</td></tr><tr><td class="">Laura 2020</td><td class=""><span class="mono">AL132020</span></td><td class="">matched</td><td class="num">2</td><td class="num">9.3 km</td><td class="num">483 km</td></tr><tr><td class="">Ida 2021</td><td class=""><span class="mono">AL092021</span></td><td class="">matched</td><td class="num">2</td><td class="num">2.5 km</td><td class="num">613 km</td></tr><tr><td class="">Ian 2022</td><td class=""><span class="mono">AL092022</span></td><td class="">matched</td><td class="num">1</td><td class="num">10.9 km</td><td class="num">928 km</td></tr><tr><td class="">Idalia 2023</td><td class=""><span class="mono">AL102023</span></td><td class="">matched</td><td class="num">1</td><td class="num">7.5 km</td><td class="num">539 km</td></tr></tbody></table></div>
+
+<h2>3. Scoring protocol</h2>
+<p>The primary metric is the continuous ranked probability score of the predicted outage
+fraction, averaged over the counties of a storm and then over storms with equal weight. Equal
+storm weight is the point: pooling counties instead would let Michael's 318 counties outvote
+Harvey's 66 and turn the headline number into a statement about geography rather than about
+the model. Pooled county diagnostics are reported alongside, and treated as diagnostics.</p>
+<ul>
+  <li><b>Reference.</b> CRPSS compares each model against a climatological distribution built
+  from the same event pool. Zero means no better than climatology; negative means worse.</li>
+  <li><b>Uncertainty.</b> A 2,000-draw bootstrap resamples <em>storms</em>, not counties.
+  Counties within a storm share a weather field and are nowhere near independent, so a county
+  bootstrap would report an interval several times too narrow.</li>
+  <li><b>Calibration.</b> The PIT&#8211;KS statistic measures how far the probability integral
+  transform of the observations departs from uniform; 90% interval coverage is the share of
+  counties whose observed outage fell at or below the 90th-percentile forecast. A
+  well-calibrated model returns about 0.90.</li>
+</ul>
+
+<h2>4. Skill: all three models beat climatology, none beats the others</h2>
+<figure>
+  <div class="wp-legend"><span class="wp-key"><i style="background:#0284c7"></i>baseline A</span><span class="wp-key"><i style="background:#d97706"></i>baseline B</span><span class="wp-key"><i style="background:#7c3aed"></i>baseline B+</span></div>
+  <svg class="chart" viewBox="0 0 880 182" role="img" aria-label="Primary CRPS by model with 95% bootstrap interval"><title>Primary CRPS by model with 95% bootstrap interval</title><line class="grid" x1="108.00" y1="30.0" x2="108.00" y2="126.00"/><text class="tick" x="108.00" y="146.00" text-anchor="middle">0.10</text><line class="grid" x1="214.86" y1="30.0" x2="214.86" y2="126.00"/><text class="tick" x="214.86" y="146.00" text-anchor="middle">0.12</text><line class="grid" x1="321.71" y1="30.0" x2="321.71" y2="126.00"/><text class="tick" x="321.71" y="146.00" text-anchor="middle">0.14</text><line class="grid" x1="428.57" y1="30.0" x2="428.57" y2="126.00"/><text class="tick" x="428.57" y="146.00" text-anchor="middle">0.16</text><line class="grid" x1="535.43" y1="30.0" x2="535.43" y2="126.00"/><text class="tick" x="535.43" y="146.00" text-anchor="middle">0.18</text><line class="grid" x1="642.29" y1="30.0" x2="642.29" y2="126.00"/><text class="tick" x="642.29" y="146.00" text-anchor="middle">0.20</text><line class="grid" x1="749.14" y1="30.0" x2="749.14" y2="126.00"/><text class="tick" x="749.14" y="146.00" text-anchor="middle">0.22</text><line class="grid" x1="856.00" y1="30.0" x2="856.00" y2="126.00"/><text class="tick" x="856.00" y="146.00" text-anchor="middle">0.24</text><line class="reference" x1="735.80" y1="24.00" x2="735.80" y2="126.00"/><text class="reference-label" x="727.80" y="18.00" text-anchor="end">climatology 0.218</text><text class="row-label" x="94.0" y="56.00" text-anchor="end">baseline A</text><line x1="265.58" y1="52.00" x2="671.67" y2="52.00" stroke="#0284c7" stroke-width="2" stroke-linecap="round" opacity="0.45"/><line x1="265.58" y1="47.00" x2="265.58" y2="57.00" stroke="#0284c7" stroke-width="2" opacity="0.45"/><line x1="671.67" y1="47.00" x2="671.67" y2="57.00" stroke="#0284c7" stroke-width="2" opacity="0.45"/><circle cx="444.54" cy="52.00" r="5.5" fill="#0284c7" class="ring"><title>baseline A: CRPS 0.163 (95% CI 0.129–0.206)</title></circle><text class="value" x="444.54" y="40.00" text-anchor="middle">0.163</text><text class="row-label" x="94.0" y="86.00" text-anchor="end">baseline B</text><line x1="276.18" y1="82.00" x2="670.86" y2="82.00" stroke="#d97706" stroke-width="2" stroke-linecap="round" opacity="0.45"/><line x1="276.18" y1="77.00" x2="276.18" y2="87.00" stroke="#d97706" stroke-width="2" opacity="0.45"/><line x1="670.86" y1="77.00" x2="670.86" y2="87.00" stroke="#d97706" stroke-width="2" opacity="0.45"/><circle cx="452.95" cy="82.00" r="5.5" fill="#d97706" class="ring"><title>baseline B: CRPS 0.165 (95% CI 0.131–0.205)</title></circle><text class="value" x="452.95" y="70.00" text-anchor="middle">0.165</text><text class="row-label" x="94.0" y="116.00" text-anchor="end">baseline B+</text><line x1="270.40" y1="112.00" x2="692.74" y2="112.00" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" opacity="0.45"/><line x1="270.40" y1="107.00" x2="270.40" y2="117.00" stroke="#7c3aed" stroke-width="2" opacity="0.45"/><line x1="692.74" y1="107.00" x2="692.74" y2="117.00" stroke="#7c3aed" stroke-width="2" opacity="0.45"/><circle cx="452.71" cy="112.00" r="5.5" fill="#7c3aed" class="ring"><title>baseline B+: CRPS 0.165 (95% CI 0.130–0.209)</title></circle><text class="value" x="452.71" y="100.00" text-anchor="middle">0.165</text><text class="axis-label" x="482.00" y="174.00" text-anchor="middle">CRPS (outage fraction) — lower is better</text></svg>
+  <figcaption><b>Figure 1.</b> Primary CRPS with its 95% bootstrap interval over storms.
+  The three intervals overlap almost completely: with ten storms, a separation of
+  0.0015
+  CRPS between the best and the published model is far inside the noise. Choosing between these
+  models on the strength of the headline number is not supported by this evidence.</figcaption>
+</figure>
+<div class="table-wrap"><table><caption><b>Table 1.</b> Model comparison. The primary score is the county CRPS averaged within a storm and then across storms, so a 318-county storm and a 66-county storm count the same. The interval is a 2,000-draw bootstrap over storms. PIT&#8211;KS and coverage are pooled county diagnostics.</caption><thead><tr><th class="" scope="col">Model</th><th class="num" scope="col">CRPS</th><th class="num" scope="col">95% interval</th><th class="num" scope="col">CRPSS</th><th class="num" scope="col">PIT&#8211;KS</th><th class="num" scope="col">90% coverage</th><th class="num" scope="col">Bias</th><th class="num" scope="col">MAE</th><th class="num" scope="col">RMSE</th></tr></thead><tbody><tr><td class=""><span class="swatch" style="background:#0284c7"></span>baseline A</td><td class="num">0.163</td><td class="num">0.129&#8211;0.206</td><td class="num">0.251</td><td class="num">0.234</td><td class="num">67.6%</td><td class="num">-0.138</td><td class="num">0.196</td><td class="num">0.309</td></tr><tr><td class=""><span class="swatch" style="background:#d97706"></span>baseline B</td><td class="num">0.165</td><td class="num">0.131&#8211;0.205</td><td class="num">0.243</td><td class="num">0.236</td><td class="num">67.4%</td><td class="num">-0.141</td><td class="num">0.198</td><td class="num">0.311</td></tr><tr class="is-published"><td class=""><span class="swatch" style="background:#7c3aed"></span>baseline B+ <small>(published)</small></td><td class="num">0.165</td><td class="num">0.130&#8211;0.209</td><td class="num">0.244</td><td class="num">0.517</td><td class="num">46.2%</td><td class="num">-0.156</td><td class="num">0.188</td><td class="num">0.295</td></tr></tbody></table></div>
+<p>Skill against climatology is consistent across the set: baseline A scores
+0.251 and baseline B+ scores
+0.244, both meaningful improvements over a
+climatological forecast, neither distinguishable from the other. Per storm the ordering
+churns &#8212; baseline B+ takes the lowest CRPS in 5 of the ten storms and the
+highest in the other 5, which is what a set of models with no real separation looks
+like.</p>
+<figure>
+  <div class="wp-legend"><span class="wp-key"><i style="background:#0284c7"></i>baseline A</span><span class="wp-key"><i style="background:#d97706"></i>baseline B</span><span class="wp-key"><i style="background:#7c3aed"></i>baseline B+</span></div>
+  <svg class="chart" viewBox="0 0 880 330" role="img" aria-label="Continuous ranked probability skill score by storm and model"><title>Continuous ranked probability skill score by storm and model</title><line class="grid" x1="58.0" y1="256.00" x2="862.00" y2="256.00"/><text class="tick" x="48.0" y="259.50" text-anchor="end">-0.2</text><line class="grid" x1="58.0" y1="222.00" x2="862.00" y2="222.00"/><text class="tick" x="48.0" y="225.50" text-anchor="end">-0.1</text><line class="grid" x1="58.0" y1="188.00" x2="862.00" y2="188.00"/><text class="tick" x="48.0" y="191.50" text-anchor="end">0.0</text><line class="grid" x1="58.0" y1="154.00" x2="862.00" y2="154.00"/><text class="tick" x="48.0" y="157.50" text-anchor="end">0.1</text><line class="grid" x1="58.0" y1="120.00" x2="862.00" y2="120.00"/><text class="tick" x="48.0" y="123.50" text-anchor="end">0.2</text><line class="grid" x1="58.0" y1="86.00" x2="862.00" y2="86.00"/><text class="tick" x="48.0" y="89.50" text-anchor="end">0.3</text><line class="grid" x1="58.0" y1="52.00" x2="862.00" y2="52.00"/><text class="tick" x="48.0" y="55.50" text-anchor="end">0.4</text><line class="grid" x1="58.0" y1="18.00" x2="862.00" y2="18.00"/><text class="tick" x="48.0" y="21.50" text-anchor="end">0.5</text><line class="axis" x1="58.0" y1="188.00" x2="862.00" y2="188.00"/><path d="M69.20,188.00 V90.78 Q69.20,86.78 73.20,86.78 H83.20 Q87.20,86.78 87.20,90.78 V188.00 Z" fill="#0284c7"><title>Matthew 2016 · baseline A: 0.298</title></path><path d="M89.20,188.00 V84.90 Q89.20,80.90 93.20,80.90 H103.20 Q107.20,80.90 107.20,84.90 V188.00 Z" fill="#d97706"><title>Matthew 2016 · baseline B: 0.315</title></path><path d="M109.20,188.00 V68.89 Q109.20,64.89 113.20,64.89 H123.20 Q127.20,64.89 127.20,68.89 V188.00 Z" fill="#7c3aed"><title>Matthew 2016 · baseline B+: 0.362</title></path><text class="tick" x="98.20" y="276.00" text-anchor="middle">Matthew</text><text class="tick muted" x="98.20" y="290.00" text-anchor="middle">2016</text><path d="M149.60,188.00 V215.60 Q149.60,219.60 153.60,219.60 H163.60 Q167.60,219.60 167.60,215.60 V188.00 Z" fill="#0284c7"><title>Harvey 2017 · baseline A: -0.093</title></path><path d="M169.60,188.00 V217.11 Q169.60,221.11 173.60,221.11 H183.60 Q187.60,221.11 187.60,217.11 V188.00 Z" fill="#d97706"><title>Harvey 2017 · baseline B: -0.097</title></path><path d="M189.60,188.00 V224.25 Q189.60,228.25 193.60,228.25 H203.60 Q207.60,228.25 207.60,224.25 V188.00 Z" fill="#7c3aed"><title>Harvey 2017 · baseline B+: -0.118</title></path><text class="tick" x="178.60" y="276.00" text-anchor="middle">Harvey</text><text class="tick muted" x="178.60" y="290.00" text-anchor="middle">2017</text><path d="M230.00,188.00 V148.28 Q230.00,144.28 234.00,144.28 H244.00 Q248.00,144.28 248.00,148.28 V188.00 Z" fill="#0284c7"><title>Irma 2017 · baseline A: 0.129</title></path><path d="M250.00,188.00 V139.33 Q250.00,135.33 254.00,135.33 H264.00 Q268.00,135.33 268.00,139.33 V188.00 Z" fill="#d97706"><title>Irma 2017 · baseline B: 0.155</title></path><path d="M270.00,188.00 V157.66 Q270.00,153.66 274.00,153.66 H284.00 Q288.00,153.66 288.00,157.66 V188.00 Z" fill="#7c3aed"><title>Irma 2017 · baseline B+: 0.101</title></path><text class="tick" x="259.00" y="276.00" text-anchor="middle">Irma</text><text class="tick muted" x="259.00" y="290.00" text-anchor="middle">2017</text><path d="M310.40,188.00 V65.10 Q310.40,61.10 314.40,61.10 H324.40 Q328.40,61.10 328.40,65.10 V188.00 Z" fill="#0284c7"><title>Florence 2018 · baseline A: 0.373</title></path><path d="M330.40,188.00 V75.63 Q330.40,71.63 334.40,71.63 H344.40 Q348.40,71.63 348.40,75.63 V188.00 Z" fill="#d97706"><title>Florence 2018 · baseline B: 0.342</title></path><path d="M350.40,188.00 V47.98 Q350.40,43.98 354.40,43.98 H364.40 Q368.40,43.98 368.40,47.98 V188.00 Z" fill="#7c3aed"><title>Florence 2018 · baseline B+: 0.424</title></path><text class="tick" x="339.40" y="276.00" text-anchor="middle">Florence</text><text class="tick muted" x="339.40" y="290.00" text-anchor="middle">2018</text><path d="M390.80,188.00 V115.63 Q390.80,111.63 394.80,111.63 H404.80 Q408.80,111.63 408.80,115.63 V188.00 Z" fill="#0284c7"><title>Michael 2018 · baseline A: 0.225</title></path><path d="M410.80,188.00 V122.41 Q410.80,118.41 414.80,118.41 H424.80 Q428.80,118.41 428.80,122.41 V188.00 Z" fill="#d97706"><title>Michael 2018 · baseline B: 0.205</title></path><path d="M430.80,188.00 V101.66 Q430.80,97.66 434.80,97.66 H444.80 Q448.80,97.66 448.80,101.66 V188.00 Z" fill="#7c3aed"><title>Michael 2018 · baseline B+: 0.266</title></path><text class="tick" x="419.80" y="276.00" text-anchor="middle">Michael</text><text class="tick muted" x="419.80" y="290.00" text-anchor="middle">2018</text><path d="M471.20,188.00 V143.15 Q471.20,139.15 475.20,139.15 H485.20 Q489.20,139.15 489.20,143.15 V188.00 Z" fill="#0284c7"><title>Isaias 2020 · baseline A: 0.144</title></path><path d="M491.20,188.00 V151.97 Q491.20,147.97 495.20,147.97 H505.20 Q509.20,147.97 509.20,151.97 V188.00 Z" fill="#d97706"><title>Isaias 2020 · baseline B: 0.118</title></path><path d="M511.20,188.00 V169.20 Q511.20,165.20 515.20,165.20 H525.20 Q529.20,165.20 529.20,169.20 V188.00 Z" fill="#7c3aed"><title>Isaias 2020 · baseline B+: 0.067</title></path><text class="tick" x="500.20" y="276.00" text-anchor="middle">Isaias</text><text class="tick muted" x="500.20" y="290.00" text-anchor="middle">2020</text><path d="M551.60,188.00 V87.81 Q551.60,83.81 555.60,83.81 H565.60 Q569.60,83.81 569.60,87.81 V188.00 Z" fill="#0284c7"><title>Laura 2020 · baseline A: 0.306</title></path><path d="M571.60,188.00 V97.81 Q571.60,93.81 575.60,93.81 H585.60 Q589.60,93.81 589.60,97.81 V188.00 Z" fill="#d97706"><title>Laura 2020 · baseline B: 0.277</title></path><path d="M591.60,188.00 V139.52 Q591.60,135.52 595.60,135.52 H605.60 Q609.60,135.52 609.60,139.52 V188.00 Z" fill="#7c3aed"><title>Laura 2020 · baseline B+: 0.154</title></path><text class="tick" x="580.60" y="276.00" text-anchor="middle">Laura</text><text class="tick muted" x="580.60" y="290.00" text-anchor="middle">2020</text><path d="M632.00,188.00 V44.02 Q632.00,40.02 636.00,40.02 H646.00 Q650.00,40.02 650.00,44.02 V188.00 Z" fill="#0284c7"><title>Ida 2021 · baseline A: 0.435</title></path><path d="M652.00,188.00 V45.83 Q652.00,41.83 656.00,41.83 H666.00 Q670.00,41.83 670.00,45.83 V188.00 Z" fill="#d97706"><title>Ida 2021 · baseline B: 0.430</title></path><path d="M672.00,188.00 V103.26 Q672.00,99.26 676.00,99.26 H686.00 Q690.00,99.26 690.00,103.26 V188.00 Z" fill="#7c3aed"><title>Ida 2021 · baseline B+: 0.261</title></path><text class="tick" x="661.00" y="276.00" text-anchor="middle">Ida</text><text class="tick muted" x="661.00" y="290.00" text-anchor="middle">2021</text><path d="M712.40,188.00 V81.23 Q712.40,77.23 716.40,77.23 H726.40 Q730.40,77.23 730.40,81.23 V188.00 Z" fill="#0284c7"><title>Ian 2022 · baseline A: 0.326</title></path><path d="M732.40,188.00 V83.70 Q732.40,79.70 736.40,79.70 H746.40 Q750.40,79.70 750.40,83.70 V188.00 Z" fill="#d97706"><title>Ian 2022 · baseline B: 0.319</title></path><path d="M752.40,188.00 V54.88 Q752.40,50.88 756.40,50.88 H766.40 Q770.40,50.88 770.40,54.88 V188.00 Z" fill="#7c3aed"><title>Ian 2022 · baseline B+: 0.403</title></path><text class="tick" x="741.40" y="276.00" text-anchor="middle">Ian</text><text class="tick muted" x="741.40" y="290.00" text-anchor="middle">2022</text><path d="M792.80,188.00 V122.33 Q792.80,118.33 796.80,118.33 H806.80 Q810.80,118.33 810.80,122.33 V188.00 Z" fill="#0284c7"><title>Idalia 2023 · baseline A: 0.205</title></path><path d="M812.80,188.00 V120.18 Q812.80,116.18 816.80,116.18 H826.80 Q830.80,116.18 830.80,120.18 V188.00 Z" fill="#d97706"><title>Idalia 2023 · baseline B: 0.211</title></path><path d="M832.80,188.00 V80.63 Q832.80,76.63 836.80,76.63 H846.80 Q850.80,76.63 850.80,80.63 V188.00 Z" fill="#7c3aed"><title>Idalia 2023 · baseline B+: 0.328</title></path><text class="tick" x="821.80" y="276.00" text-anchor="middle">Idalia</text><text class="tick muted" x="821.80" y="290.00" text-anchor="middle">2023</text><text class="axis-label" x="14.0" y="137.00" transform="rotate(-90 14.0 137.00)" text-anchor="middle">CRPSS vs climatology</text></svg>
+  <figcaption><b>Figure 2.</b> Skill over climatology by storm. Bars above zero beat the
+  climatological reference for that storm. Harvey 2017
+  is the exception: every model scores worse than climatology there. Its observed outages were
+  the mildest in the set (mean fraction
+  0.097),
+  and the climatological distribution was already close to right.</figcaption>
+</figure>
+<div class="table-wrap"><table><caption><b>Table 2.</b> County CRPS by storm, one column per model, against the climatological reference built from the same event pool. Lower is better; the climatology column is the number each model has to beat for that storm.</caption><thead><tr><th class="" scope="col">Storm</th><th class="num" scope="col">Counties</th><th class="num" scope="col">Climatology</th><th class="num" scope="col">baseline A</th><th class="num" scope="col">baseline B</th><th class="num" scope="col">baseline B+</th><th class="" scope="col">Lowest CRPS</th></tr></thead><tbody><tr><td class="">Matthew 2016</td><td class="num">303</td><td class="num">0.197</td><td class="num">0.138</td><td class="num">0.135</td><td class="num">0.126</td><td class=""><span class="swatch" style="background:#7c3aed"></span>baseline B+</td></tr><tr><td class="">Harvey 2017</td><td class="num">66</td><td class="num">0.077</td><td class="num">0.084</td><td class="num">0.085</td><td class="num">0.086</td><td class=""><span class="swatch" style="background:#0284c7"></span>baseline A</td></tr><tr><td class="">Irma 2017</td><td class="num">235</td><td class="num">0.353</td><td class="num">0.307</td><td class="num">0.298</td><td class="num">0.317</td><td class=""><span class="swatch" style="background:#d97706"></span>baseline B</td></tr><tr><td class="">Florence 2018</td><td class="num">89</td><td class="num">0.327</td><td class="num">0.205</td><td class="num">0.215</td><td class="num">0.189</td><td class=""><span class="swatch" style="background:#7c3aed"></span>baseline B+</td></tr><tr><td class="">Michael 2018</td><td class="num">318</td><td class="num">0.229</td><td class="num">0.178</td><td class="num">0.182</td><td class="num">0.168</td><td class=""><span class="swatch" style="background:#7c3aed"></span>baseline B+</td></tr><tr><td class="">Isaias 2020</td><td class="num">182</td><td class="num">0.213</td><td class="num">0.182</td><td class="num">0.188</td><td class="num">0.199</td><td class=""><span class="swatch" style="background:#0284c7"></span>baseline A</td></tr><tr><td class="">Laura 2020</td><td class="num">139</td><td class="num">0.232</td><td class="num">0.161</td><td class="num">0.168</td><td class="num">0.197</td><td class=""><span class="swatch" style="background:#0284c7"></span>baseline A</td></tr><tr><td class="">Ida 2021</td><td class="num">156</td><td class="num">0.165</td><td class="num">0.093</td><td class="num">0.094</td><td class="num">0.122</td><td class=""><span class="swatch" style="background:#0284c7"></span>baseline A</td></tr><tr><td class="">Ian 2022</td><td class="num">197</td><td class="num">0.190</td><td class="num">0.128</td><td class="num">0.130</td><td class="num">0.114</td><td class=""><span class="swatch" style="background:#7c3aed"></span>baseline B+</td></tr><tr><td class="">Idalia 2023</td><td class="num">153</td><td class="num">0.191</td><td class="num">0.152</td><td class="num">0.151</td><td class="num">0.129</td><td class=""><span class="swatch" style="background:#7c3aed"></span>baseline B+</td></tr></tbody></table></div>
+
+<h2>5. Calibration: sharp, and overconfident</h2>
+<p>Skill and calibration part company here. baseline B+ carries the narrowest
+predictive distributions in the set &#8212; the lowest mean absolute error
+(0.188) and the lowest RMSE
+(0.295) of the three &#8212; but its
+intervals do not cover the outcome. Only 46% of counties
+fall at or below their 90th-percentile forecast, against a nominal 90%, and its PIT&#8211;KS
+statistic (0.517) is more than double
+baseline A's (0.234). The intervals it publishes
+are, in plain terms, too narrow to be believed.</p>
+<figure class="split">
+  <div class="fig-body">
+    <div class="wp-legend"><span class="wp-key"><i style="background:#0284c7"></i>baseline A</span><span class="wp-key"><i style="background:#d97706"></i>baseline B</span><span class="wp-key"><i style="background:#7c3aed"></i>baseline B+</span></div>
+    <svg class="chart" viewBox="0 0 560 440" role="img" aria-label="Reliability of the probability that a county loses more than 5% of customers"><title>Reliability diagram</title><line class="grid" x1="62.0" y1="382.00" x2="422.00" y2="382.00"/><text class="tick" x="52.0" y="385.50" text-anchor="end">0.0</text><text class="tick" x="62.00" y="402.00" text-anchor="middle">0.0</text><line class="grid" x1="62.0" y1="310.00" x2="422.00" y2="310.00"/><text class="tick" x="52.0" y="313.50" text-anchor="end">0.2</text><text class="tick" x="134.00" y="402.00" text-anchor="middle">0.2</text><line class="grid" x1="62.0" y1="238.00" x2="422.00" y2="238.00"/><text class="tick" x="52.0" y="241.50" text-anchor="end">0.4</text><text class="tick" x="206.00" y="402.00" text-anchor="middle">0.4</text><line class="grid" x1="62.0" y1="166.00" x2="422.00" y2="166.00"/><text class="tick" x="52.0" y="169.50" text-anchor="end">0.6</text><text class="tick" x="278.00" y="402.00" text-anchor="middle">0.6</text><line class="grid" x1="62.0" y1="94.00" x2="422.00" y2="94.00"/><text class="tick" x="52.0" y="97.50" text-anchor="end">0.8</text><text class="tick" x="350.00" y="402.00" text-anchor="middle">0.8</text><line class="grid" x1="62.0" y1="22.00" x2="422.00" y2="22.00"/><text class="tick" x="52.0" y="25.50" text-anchor="end">1.0</text><text class="tick" x="422.00" y="402.00" text-anchor="middle">1.0</text><line class="reference dashed" x1="62.00" y1="382.00" x2="422.00" y2="22.00"/><text class="reference-label" x="278.00" y="212.80" text-anchor="start">perfect reliability</text><polyline points="128.82,266.80 154.44,232.16 185.24,201.48 223.70,131.57 258.79,120.96 295.30,101.48 332.37,82.44 368.22,52.70 411.06,34.05" fill="none" stroke="#0284c7" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="128.82" cy="266.80" r="4.5" fill="#0284c7" class="ring"><title>baseline A: forecast 18.6%, observed 32.0% (25 counties)</title></circle><circle cx="154.44" cy="232.16" r="4.5" fill="#0284c7" class="ring"><title>baseline A: forecast 25.7%, observed 41.6% (370 counties)</title></circle><circle cx="185.24" cy="201.48" r="4.5" fill="#0284c7" class="ring"><title>baseline A: forecast 34.2%, observed 50.1% (343 counties)</title></circle><circle cx="223.70" cy="131.57" r="4.5" fill="#0284c7" class="ring"><title>baseline A: forecast 44.9%, observed 69.6% (230 counties)</title></circle><circle cx="258.79" cy="120.96" r="4.5" fill="#0284c7" class="ring"><title>baseline A: forecast 54.7%, observed 72.5% (211 counties)</title></circle><circle cx="295.30" cy="101.48" r="4.5" fill="#0284c7" class="ring"><title>baseline A: forecast 64.8%, observed 77.9% (154 counties)</title></circle><circle cx="332.37" cy="82.44" r="4.5" fill="#0284c7" class="ring"><title>baseline A: forecast 75.1%, observed 83.2% (137 counties)</title></circle><circle cx="368.22" cy="52.70" r="4.5" fill="#0284c7" class="ring"><title>baseline A: forecast 85.1%, observed 91.5% (129 counties)</title></circle><circle cx="411.06" cy="34.05" r="4.5" fill="#0284c7" class="ring"><title>baseline A: forecast 97.0%, observed 96.7% (239 counties)</title></circle><polyline points="131.01,243.54 154.98,236.33 185.55,189.39 222.46,142.00 258.63,118.59 295.44,99.14 331.00,71.21 367.42,61.38 411.38,32.77" fill="none" stroke="#d97706" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="131.01" cy="243.54" r="4.5" fill="#d97706" class="ring"><title>baseline B: forecast 19.2%, observed 38.5% (13 counties)</title></circle><circle cx="154.98" cy="236.33" r="4.5" fill="#d97706" class="ring"><title>baseline B: forecast 25.8%, observed 40.5% (388 counties)</title></circle><circle cx="185.55" cy="189.39" r="4.5" fill="#d97706" class="ring"><title>baseline B: forecast 34.3%, observed 53.5% (357 counties)</title></circle><circle cx="222.46" cy="142.00" r="4.5" fill="#d97706" class="ring"><title>baseline B: forecast 44.6%, observed 66.7% (234 counties)</title></circle><circle cx="258.63" cy="118.59" r="4.5" fill="#d97706" class="ring"><title>baseline B: forecast 54.6%, observed 73.2% (205 counties)</title></circle><circle cx="295.44" cy="99.14" r="4.5" fill="#d97706" class="ring"><title>baseline B: forecast 64.8%, observed 78.6% (140 counties)</title></circle><circle cx="331.00" cy="71.21" r="4.5" fill="#d97706" class="ring"><title>baseline B: forecast 74.7%, observed 86.3% (139 counties)</title></circle><circle cx="367.42" cy="61.38" r="4.5" fill="#d97706" class="ring"><title>baseline B: forecast 84.8%, observed 89.1% (128 counties)</title></circle><circle cx="411.38" cy="32.77" r="4.5" fill="#d97706" class="ring"><title>baseline B: forecast 97.1%, observed 97.0% (234 counties)</title></circle><polyline points="81.14,259.31 114.95,188.23 152.42,116.98 187.03,86.11 222.75,97.60 257.11,65.78 294.88,72.77 332.04,40.00 365.93,47.71 414.79,40.28" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="81.14" cy="259.31" r="4.5" fill="#7c3aed" class="ring"><title>baseline B+: forecast 5.3%, observed 34.1% (446 counties)</title></circle><circle cx="114.95" cy="188.23" r="4.5" fill="#7c3aed" class="ring"><title>baseline B+: forecast 14.7%, observed 53.8% (353 counties)</title></circle><circle cx="152.42" cy="116.98" r="4.5" fill="#7c3aed" class="ring"><title>baseline B+: forecast 25.1%, observed 73.6% (235 counties)</title></circle><circle cx="187.03" cy="86.11" r="4.5" fill="#7c3aed" class="ring"><title>baseline B+: forecast 34.7%, observed 82.2% (146 counties)</title></circle><circle cx="222.75" cy="97.60" r="4.5" fill="#7c3aed" class="ring"><title>baseline B+: forecast 44.7%, observed 79.0% (100 counties)</title></circle><circle cx="257.11" cy="65.78" r="4.5" fill="#7c3aed" class="ring"><title>baseline B+: forecast 54.2%, observed 87.8% (74 counties)</title></circle><circle cx="294.88" cy="72.77" r="4.5" fill="#7c3aed" class="ring"><title>baseline B+: forecast 64.7%, observed 85.9% (78 counties)</title></circle><circle cx="332.04" cy="40.00" r="4.5" fill="#7c3aed" class="ring"><title>baseline B+: forecast 75.0%, observed 95.0% (80 counties)</title></circle><circle cx="365.93" cy="47.71" r="4.5" fill="#7c3aed" class="ring"><title>baseline B+: forecast 84.4%, observed 92.9% (70 counties)</title></circle><circle cx="414.79" cy="40.28" r="4.5" fill="#7c3aed" class="ring"><title>baseline B+: forecast 98.0%, observed 94.9% (256 counties)</title></circle><text class="axis-label" x="242.00" y="424.00" text-anchor="middle">Forecast probability</text><text class="axis-label" x="16.0" y="202.00" transform="rotate(-90 16.0 202.00)" text-anchor="middle">Observed frequency</text></svg>
+  </div>
+  <figcaption><b>Figure 3.</b> Reliability of the forecast probability that a county loses
+  more than 5% of its customers. A perfectly reliable model sits on the diagonal. All three
+  models sit above it &#8212; events happen more often than they are forecast &#8212; and
+  baseline B+'s curve departs furthest, especially in the low-probability bins where
+  it assigns near-zero probability to counties that lost power roughly a third of the
+  time.</figcaption>
+</figure>
+<figure>
+  <div class="wp-legend"><span class="wp-key"><i style="background:#0284c7"></i>baseline A</span><span class="wp-key"><i style="background:#d97706"></i>baseline B</span><span class="wp-key"><i style="background:#7c3aed"></i>baseline B+</span></div>
+  <svg class="chart" viewBox="0 0 880 330" role="img" aria-label="Share of counties whose observed outage fell at or below the 90th-percentile forecast"><title>Share of counties whose observed outage fell at or below the 90th-percentile forecast</title><line class="grid" x1="58.0" y1="256.00" x2="862.00" y2="256.00"/><text class="tick" x="48.0" y="259.50" text-anchor="end">0.00</text><line class="grid" x1="58.0" y1="196.50" x2="862.00" y2="196.50"/><text class="tick" x="48.0" y="200.00" text-anchor="end">0.25</text><line class="grid" x1="58.0" y1="137.00" x2="862.00" y2="137.00"/><text class="tick" x="48.0" y="140.50" text-anchor="end">0.50</text><line class="grid" x1="58.0" y1="77.50" x2="862.00" y2="77.50"/><text class="tick" x="48.0" y="81.00" text-anchor="end">0.75</text><line class="grid" x1="58.0" y1="18.00" x2="862.00" y2="18.00"/><text class="tick" x="48.0" y="21.50" text-anchor="end">1.00</text><line class="axis" x1="58.0" y1="256.00" x2="862.00" y2="256.00"/><line class="reference" x1="58.0" y1="41.80" x2="862.00" y2="41.80"/><text class="reference-label" x="862.00" y="34.80" text-anchor="end">nominal 90%</text><path d="M69.20,256.00 V84.05 Q69.20,80.05 73.20,80.05 H83.20 Q87.20,80.05 87.20,84.05 V256.00 Z" fill="#0284c7"><title>Matthew 2016 · baseline A: 73.9%</title></path><path d="M89.20,256.00 V76.98 Q89.20,72.98 93.20,72.98 H103.20 Q107.20,72.98 107.20,76.98 V256.00 Z" fill="#d97706"><title>Matthew 2016 · baseline B: 76.9%</title></path><path d="M109.20,256.00 V130.40 Q109.20,126.40 113.20,126.40 H123.20 Q127.20,126.40 127.20,130.40 V256.00 Z" fill="#7c3aed"><title>Matthew 2016 · baseline B+: 54.5%</title></path><text class="tick" x="98.20" y="276.00" text-anchor="middle">Matthew</text><text class="tick muted" x="98.20" y="290.00" text-anchor="middle">2016</text><path d="M149.60,256.00 V54.45 Q149.60,50.45 153.60,50.45 H163.60 Q167.60,50.45 167.60,54.45 V256.00 Z" fill="#0284c7"><title>Harvey 2017 · baseline A: 86.4%</title></path><path d="M169.60,256.00 V54.45 Q169.60,50.45 173.60,50.45 H183.60 Q187.60,50.45 187.60,54.45 V256.00 Z" fill="#d97706"><title>Harvey 2017 · baseline B: 86.4%</title></path><path d="M189.60,256.00 V104.94 Q189.60,100.94 193.60,100.94 H203.60 Q207.60,100.94 207.60,104.94 V256.00 Z" fill="#7c3aed"><title>Harvey 2017 · baseline B+: 65.2%</title></path><text class="tick" x="178.60" y="276.00" text-anchor="middle">Harvey</text><text class="tick muted" x="178.60" y="290.00" text-anchor="middle">2017</text><path d="M230.00,256.00 V156.70 Q230.00,152.70 234.00,152.70 H244.00 Q248.00,152.70 248.00,156.70 V256.00 Z" fill="#0284c7"><title>Irma 2017 · baseline A: 43.4%</title></path><path d="M250.00,256.00 V154.67 Q250.00,150.67 254.00,150.67 H264.00 Q268.00,150.67 268.00,154.67 V256.00 Z" fill="#d97706"><title>Irma 2017 · baseline B: 44.3%</title></path><path d="M270.00,256.00 V182.02 Q270.00,178.02 274.00,178.02 H284.00 Q288.00,178.02 288.00,182.02 V256.00 Z" fill="#7c3aed"><title>Irma 2017 · baseline B+: 32.8%</title></path><text class="tick" x="259.00" y="276.00" text-anchor="middle">Irma</text><text class="tick muted" x="259.00" y="290.00" text-anchor="middle">2017</text><path d="M310.40,256.00 V115.60 Q310.40,111.60 314.40,111.60 H324.40 Q328.40,111.60 328.40,115.60 V256.00 Z" fill="#0284c7"><title>Florence 2018 · baseline A: 60.7%</title></path><path d="M330.40,256.00 V118.27 Q330.40,114.27 334.40,114.27 H344.40 Q348.40,114.27 348.40,118.27 V256.00 Z" fill="#d97706"><title>Florence 2018 · baseline B: 59.6%</title></path><path d="M350.40,256.00 V136.99 Q350.40,132.99 354.40,132.99 H364.40 Q368.40,132.99 368.40,136.99 V256.00 Z" fill="#7c3aed"><title>Florence 2018 · baseline B+: 51.7%</title></path><text class="tick" x="339.40" y="276.00" text-anchor="middle">Florence</text><text class="tick muted" x="339.40" y="290.00" text-anchor="middle">2018</text><path d="M390.80,256.00 V95.35 Q390.80,91.35 394.80,91.35 H404.80 Q408.80,91.35 408.80,95.35 V256.00 Z" fill="#0284c7"><title>Michael 2018 · baseline A: 69.2%</title></path><path d="M410.80,256.00 V103.58 Q410.80,99.58 414.80,99.58 H424.80 Q428.80,99.58 428.80,103.58 V256.00 Z" fill="#d97706"><title>Michael 2018 · baseline B: 65.7%</title></path><path d="M430.80,256.00 V143.25 Q430.80,139.25 434.80,139.25 H444.80 Q448.80,139.25 448.80,143.25 V256.00 Z" fill="#7c3aed"><title>Michael 2018 · baseline B+: 49.1%</title></path><text class="tick" x="419.80" y="276.00" text-anchor="middle">Michael</text><text class="tick muted" x="419.80" y="290.00" text-anchor="middle">2018</text><path d="M471.20,256.00 V117.46 Q471.20,113.46 475.20,113.46 H485.20 Q489.20,113.46 489.20,117.46 V256.00 Z" fill="#0284c7"><title>Isaias 2020 · baseline A: 59.9%</title></path><path d="M491.20,256.00 V120.08 Q491.20,116.08 495.20,116.08 H505.20 Q509.20,116.08 509.20,120.08 V256.00 Z" fill="#d97706"><title>Isaias 2020 · baseline B: 58.8%</title></path><path d="M511.20,256.00 V190.69 Q511.20,186.69 515.20,186.69 H525.20 Q529.20,186.69 529.20,190.69 V256.00 Z" fill="#7c3aed"><title>Isaias 2020 · baseline B+: 29.1%</title></path><text class="tick" x="500.20" y="276.00" text-anchor="middle">Isaias</text><text class="tick muted" x="500.20" y="290.00" text-anchor="middle">2020</text><path d="M551.60,256.00 V102.47 Q551.60,98.47 555.60,98.47 H565.60 Q569.60,98.47 569.60,102.47 V256.00 Z" fill="#0284c7"><title>Laura 2020 · baseline A: 66.2%</title></path><path d="M571.60,256.00 V104.19 Q571.60,100.19 575.60,100.19 H585.60 Q589.60,100.19 589.60,104.19 V256.00 Z" fill="#d97706"><title>Laura 2020 · baseline B: 65.5%</title></path><path d="M591.60,256.00 V174.39 Q591.60,170.39 595.60,170.39 H605.60 Q609.60,170.39 609.60,174.39 V256.00 Z" fill="#7c3aed"><title>Laura 2020 · baseline B+: 36.0%</title></path><text class="tick" x="580.60" y="276.00" text-anchor="middle">Laura</text><text class="tick muted" x="580.60" y="290.00" text-anchor="middle">2020</text><path d="M632.00,256.00 V76.92 Q632.00,72.92 636.00,72.92 H646.00 Q650.00,72.92 650.00,76.92 V256.00 Z" fill="#0284c7"><title>Ida 2021 · baseline A: 76.9%</title></path><path d="M652.00,256.00 V76.92 Q652.00,72.92 656.00,72.92 H666.00 Q670.00,72.92 670.00,76.92 V256.00 Z" fill="#d97706"><title>Ida 2021 · baseline B: 76.9%</title></path><path d="M672.00,256.00 V173.04 Q672.00,169.04 676.00,169.04 H686.00 Q690.00,169.04 690.00,173.04 V256.00 Z" fill="#7c3aed"><title>Ida 2021 · baseline B+: 36.5%</title></path><text class="tick" x="661.00" y="276.00" text-anchor="middle">Ida</text><text class="tick muted" x="661.00" y="290.00" text-anchor="middle">2021</text><path d="M712.40,256.00 V71.53 Q712.40,67.53 716.40,67.53 H726.40 Q730.40,67.53 730.40,71.53 V256.00 Z" fill="#0284c7"><title>Ian 2022 · baseline A: 79.2%</title></path><path d="M732.40,256.00 V71.53 Q732.40,67.53 736.40,67.53 H746.40 Q750.40,67.53 750.40,71.53 V256.00 Z" fill="#d97706"><title>Ian 2022 · baseline B: 79.2%</title></path><path d="M752.40,256.00 V124.69 Q752.40,120.69 756.40,120.69 H766.40 Q770.40,120.69 770.40,124.69 V256.00 Z" fill="#7c3aed"><title>Ian 2022 · baseline B+: 56.9%</title></path><text class="tick" x="741.40" y="276.00" text-anchor="middle">Ian</text><text class="tick muted" x="741.40" y="290.00" text-anchor="middle">2022</text><path d="M792.80,256.00 V92.00 Q792.80,88.00 796.80,88.00 H806.80 Q810.80,88.00 810.80,92.00 V256.00 Z" fill="#0284c7"><title>Idalia 2023 · baseline A: 70.6%</title></path><path d="M812.80,256.00 V92.00 Q812.80,88.00 816.80,88.00 H826.80 Q830.80,88.00 830.80,92.00 V256.00 Z" fill="#d97706"><title>Idalia 2023 · baseline B: 70.6%</title></path><path d="M832.80,256.00 V118.44 Q832.80,114.44 836.80,114.44 H846.80 Q850.80,114.44 850.80,118.44 V256.00 Z" fill="#7c3aed"><title>Idalia 2023 · baseline B+: 59.5%</title></path><text class="tick" x="821.80" y="276.00" text-anchor="middle">Idalia</text><text class="tick muted" x="821.80" y="290.00" text-anchor="middle">2023</text><text class="axis-label" x="14.0" y="137.00" transform="rotate(-90 14.0 137.00)" text-anchor="middle">90% interval coverage</text></svg>
+  <figcaption><b>Figure 4.</b> 90% interval coverage by storm against the nominal 90% line.
+  Every storm falls short for every model, and baseline B+ falls furthest short in
+  every one of the ten. Coverage this far below nominal means an operator reading the p90 column
+  as a reasonable worst case is reading something considerably milder than that.</figcaption>
+</figure>
+
+<h2>6. Bias: the models under-predict, consistently</h2>
+<p>Averaged over storms, every model predicts a smaller outage fraction than was observed:
+-0.156 for baseline B+,
+-0.138 for
+baseline A. Pooled over counties the gap is starker still &#8212; a mean
+observed outage fraction of 0.280 against a
+mean prediction of 0.117. The single worst
+case is Irma 2017, where the published model predicted a
+mean outage fraction of 0.110 against
+0.428 observed.</p>
+<p>Under-prediction and narrow intervals compound rather than cancel: a distribution centred
+too low <em>and</em> too tight is wrong in the direction that matters most for staging crews.
+That is the first thing to fix, and it is measurable &#8212; both diagnostics on this page are
+the test that a fix has to move.</p>
+<div class="table-wrap"><table><caption><b>Table 3.</b> Per-storm detail for <b>baseline B+</b>, the model whose hindcasts are published to the archive dashboard. Outage fractions are customer-weighted county means; bias is predicted minus observed.</caption><thead><tr><th class="" scope="col">Storm</th><th class="num" scope="col">CRPSS</th><th class="num" scope="col">PIT&#8211;KS</th><th class="num" scope="col">90% coverage</th><th class="num" scope="col">Observed</th><th class="num" scope="col">Predicted</th><th class="num" scope="col">Bias</th><th class="num" scope="col">MAE</th><th class="num" scope="col">RMSE</th></tr></thead><tbody><tr><td class="">Matthew 2016</td><td class="num">0.362</td><td class="num">0.452</td><td class="num">54.5%</td><td class="num">0.244</td><td class="num">0.129</td><td class="num">-0.114</td><td class="num">0.150</td><td class="num">0.253</td></tr><tr><td class="">Harvey 2017</td><td class="num">-0.118</td><td class="num">0.419</td><td class="num">65.2%</td><td class="num">0.097</td><td class="num">0.057</td><td class="num">-0.040</td><td class="num">0.103</td><td class="num">0.213</td></tr><tr><td class="">Irma 2017</td><td class="num">0.101</td><td class="num">0.602</td><td class="num">32.8%</td><td class="num">0.428</td><td class="num">0.110</td><td class="num">-0.318</td><td class="num">0.346</td><td class="num">0.469</td></tr><tr><td class="">Florence 2018</td><td class="num">0.424</td><td class="num">0.569</td><td class="num">51.7%</td><td class="num">0.393</td><td class="num">0.213</td><td class="num">-0.179</td><td class="num">0.221</td><td class="num">0.345</td></tr><tr><td class="">Michael 2018</td><td class="num">0.266</td><td class="num">0.506</td><td class="num">49.1%</td><td class="num">0.288</td><td class="num">0.135</td><td class="num">-0.152</td><td class="num">0.192</td><td class="num">0.306</td></tr><tr><td class="">Isaias 2020</td><td class="num">0.067</td><td class="num">0.647</td><td class="num">29.1%</td><td class="num">0.273</td><td class="num">0.078</td><td class="num">-0.195</td><td class="num">0.218</td><td class="num">0.304</td></tr><tr><td class="">Laura 2020</td><td class="num">0.154</td><td class="num">0.592</td><td class="num">36.0%</td><td class="num">0.287</td><td class="num">0.077</td><td class="num">-0.210</td><td class="num">0.219</td><td class="num">0.339</td></tr><tr><td class="">Ida 2021</td><td class="num">0.261</td><td class="num">0.641</td><td class="num">36.5%</td><td class="num">0.208</td><td class="num">0.079</td><td class="num">-0.128</td><td class="num">0.140</td><td class="num">0.244</td></tr><tr><td class="">Ian 2022</td><td class="num">0.403</td><td class="num">0.490</td><td class="num">56.9%</td><td class="num">0.242</td><td class="num">0.136</td><td class="num">-0.106</td><td class="num">0.134</td><td class="num">0.222</td></tr><tr><td class="">Idalia 2023</td><td class="num">0.328</td><td class="num">0.485</td><td class="num">59.5%</td><td class="num">0.242</td><td class="num">0.128</td><td class="num">-0.114</td><td class="num">0.151</td><td class="num">0.249</td></tr></tbody></table></div>
+
+<h2>7. What this evaluation does not establish</h2>
+<ul>
+  <li><b>It is not forecast skill.</b> Scoring against the analysed hazard removes weather
+  forecast error entirely. The corresponding forecast-basis evaluation has not been run.</li>
+  <li><b>Ten storms is a small sample.</b> The bootstrap interval on the headline score spans
+  roughly 0.08
+  CRPS. Differences between these models cannot be resolved at this sample size, and neither
+  can a modest real improvement.</li>
+  <li><b>All ten are tropical cyclones.</b> Nothing here speaks to winter storms, derechos or
+  ice, which the live product also runs on.</li>
+  <li><b>Coverage is county-level, not customer-level.</b> A county is one unit whatever its
+  customer base, which is the right call for scoring the model and the wrong one for reading
+  off expected system-wide impact.</li>
+  <li><b>The observed outage record is a data product too</b>, with its own reporting gaps.
+  Counties absent from the record are absent from the score.</li>
+</ul>
+
+<h2>8. The published hindcasts</h2>
+<p>All ten baseline B+ hindcasts are published to the
+<a href="https://afahadabdullah.github.io/weather2grid-archive/">Weather2Grid archive dashboard</a>. Open the run picker and choose a
+storm from the <em>Hindcast verification</em> group: each one carries the full predictive
+distribution per county alongside the observed outcome, so the observed and error map layers
+&#8212; which a live forecast cannot have, because its outcome has not happened yet &#8212;
+are available for every county in the storm.</p>
+<div class="table-wrap"><table><caption><b>Table 5.</b> The ten hindcast cycles published to the archive dashboard. Each carries the full predictive distribution per county plus the observed outcome, so the dashboard can draw the observed and error layers a live forecast cannot have.</caption><thead><tr><th class="" scope="col">Storm</th><th class="" scope="col">Cycle id</th><th class="num" scope="col">Counties</th><th class="" scope="col">Window start</th><th class="" scope="col">Window end</th><th class="num" scope="col">CRPSS</th></tr></thead><tbody><tr><td class="">Matthew 2016</td><td class=""><span class="mono">20160929T0200Z_hindcast-baseline-bplus-MATTHEW_2016</span></td><td class="num">303</td><td class="">2016-09-29</td><td class="">2016-11-03</td><td class="num">0.362</td></tr><tr><td class="">Harvey 2017</td><td class=""><span class="mono">20170823T2100Z_hindcast-baseline-bplus-HARVEY_2017</span></td><td class="num">66</td><td class="">2017-08-23</td><td class="">2017-09-02</td><td class="num">-0.118</td></tr><tr><td class="">Irma 2017</td><td class=""><span class="mono">20170909T1100Z_hindcast-baseline-bplus-IRMA_2017</span></td><td class="num">235</td><td class="">2017-09-09</td><td class="">2017-09-13</td><td class="num">0.101</td></tr><tr><td class="">Florence 2018</td><td class=""><span class="mono">20180913T0800Z_hindcast-baseline-bplus-FLORENCE_2018</span></td><td class="num">89</td><td class="">2018-09-13</td><td class="">2018-09-17</td><td class="num">0.424</td></tr><tr><td class="">Michael 2018</td><td class=""><span class="mono">20181009T0300Z_hindcast-baseline-bplus-MICHAEL_2018</span></td><td class="num">318</td><td class="">2018-10-09</td><td class="">2018-10-13</td><td class="num">0.266</td></tr><tr><td class="">Isaias 2020</td><td class=""><span class="mono">20200802T1100Z_hindcast-baseline-bplus-ISAIAS_2020</span></td><td class="num">182</td><td class="">2020-08-02</td><td class="">2020-08-05</td><td class="num">0.067</td></tr><tr><td class="">Laura 2020</td><td class=""><span class="mono">20200826T1100Z_hindcast-baseline-bplus-LAURA_2020</span></td><td class="num">139</td><td class="">2020-08-26</td><td class="">2020-08-31</td><td class="num">0.154</td></tr><tr><td class="">Ida 2021</td><td class=""><span class="mono">20210829T0200Z_hindcast-baseline-bplus-IDA_2021</span></td><td class="num">156</td><td class="">2021-08-29</td><td class="">2021-09-02</td><td class="num">0.261</td></tr><tr><td class="">Ian 2022</td><td class=""><span class="mono">20220927T1800Z_hindcast-baseline-bplus-IAN_2022</span></td><td class="num">197</td><td class="">2022-09-27</td><td class="">2022-10-05</td><td class="num">0.403</td></tr><tr><td class="">Idalia 2023</td><td class=""><span class="mono">20230829T2100Z_hindcast-baseline-bplus-IDALIA_2023</span></td><td class="num">153</td><td class="">2023-08-29</td><td class="">2023-09-01</td><td class="num">0.328</td></tr></tbody></table></div>
+
+<h2>9. Reproducibility</h2>
+<p>Every number on this page is generated from the evaluation bundle named below by
+<code>scripts/build_evaluation_page.py</code>; the hindcast payloads on the archive dashboard
+are written from the same bundle by <code>scripts/publish_hindcast_evaluation.py</code>.
+Neither page is edited by hand. The bundle itself is published alongside the hindcasts, so
+every table here can be recomputed from the artifacts it links.</p>
+<dl class="facts">
+  <dt>Evaluation run</dt><dd>prism-37922961</dd>
+  <dt>Generated (UTC)</dt><dd>2026-09-04T21:03:47.490497+00:00</dd>
+  <dt>Code version</dt><dd>0.0.1</dd>
+  <dt>Fitset</dt><dd>/panfs/ccds02/nobackup/people/afahad/stormgrid/processed/fitset.parquet</dd>
+  <dt>Fitset SHA-256</dt><dd>128a32e2ce42e8ac3dee66fe94d007a806b7484c493256797028649e65f1cbeb</dd>
+  <dt>Evaluation content hash</dt><dd>1659a16c5812f6ac083f7c726585f751</dd>
+  <dt>Best-track source</dt><dd>hurdat2-1851-2025-02272026.txt</dd>
+  <dt>Best-track SHA-256</dt><dd>1b9b0c7beed5b4505838658b1d30e159fc84330c60891a58cfcf43ae55c37202</dd>
+  <dt>Manifest</dt><dd><a href="https://afahadabdullah.github.io/weather2grid-archive/evaluation/prism-37922961/evaluation_manifest.json">evaluation_manifest.json</a></dd>
+  <dt>Scorecards</dt><dd><a href="https://afahadabdullah.github.io/weather2grid-archive/evaluation/prism-37922961/models/baseline_a/scorecard.json">baseline_a</a> &#183; <a href="https://afahadabdullah.github.io/weather2grid-archive/evaluation/prism-37922961/models/baseline_b/scorecard.json">baseline_b</a> &#183; <a href="https://afahadabdullah.github.io/weather2grid-archive/evaluation/prism-37922961/models/baseline_bplus/scorecard.json">baseline_bplus</a></dd>
+  <dt>Score matrix</dt><dd><a href="https://afahadabdullah.github.io/weather2grid-archive/evaluation/prism-37922961/evaluation_matrix.csv">evaluation_matrix.csv</a> &#183; <a href="https://afahadabdullah.github.io/weather2grid-archive/evaluation/prism-37922961/model_summary.csv">model_summary.csv</a> &#183; <a href="https://afahadabdullah.github.io/weather2grid-archive/evaluation/prism-37922961/event_identity_map.csv">event_identity_map.csv</a></dd>
+</dl>
+</main>
+<footer class="foot paper-foot">
+  <span>Weather2Grid &#183; Probabilistic Weather-to-Power-Grid Decision Intelligence</span>
+  <span>Research evaluation &#183; not operational guidance. Verify with official National Weather Service / NHC directives for life safety.</span>
+</footer>
+<script>
+(function () {
+  var button = document.getElementById('theme-toggle');
+  if (!button) return;
+  button.addEventListener('click', function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('w2g_theme', next); } catch (error) { /* private mode */ }
+  });
+})();
+</script>
+</body>
+</html>

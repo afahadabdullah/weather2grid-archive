@@ -1,8 +1,8 @@
 {
   "version": "0.1.0",
-  "generated_at_utc": "2026-09-04T20:50:36.586439+00:00",
-  "cycles": 4,
-  "initializations": 2,
+  "generated_at_utc": "2026-09-04T21:41:35.858270+00:00",
+  "cycles": 14,
+  "initializations": 12,
   "archive_view": true,
   "operational": false,
   "shadow_mode": true,

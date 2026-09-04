@@ -20,5 +20,115 @@
     "product_window_hours": null,
     "product_step_hours": null,
     "windows_overlap": false
+  },
+  {
+    "hazard_source": "hindcast:hindcast-baseline-bplus-IDALIA_2023",
+    "forecast_provider": "Hindcast — analysed hazard, no forecast",
+    "issued_utc": "2023-08-29T21:00:00+00:00",
+    "is_latest_initialization": false,
+    "cycles": 1,
+    "horizon_hours": 54.0,
+    "product_window_hours": null,
+    "product_step_hours": null,
+    "windows_overlap": false
+  },
+  {
+    "hazard_source": "hindcast:hindcast-baseline-bplus-IAN_2022",
+    "forecast_provider": "Hindcast — analysed hazard, no forecast",
+    "issued_utc": "2022-09-27T18:00:00+00:00",
+    "is_latest_initialization": false,
+    "cycles": 1,
+    "horizon_hours": 186.0,
+    "product_window_hours": null,
+    "product_step_hours": null,
+    "windows_overlap": false
+  },
+  {
+    "hazard_source": "hindcast:hindcast-baseline-bplus-IDA_2021",
+    "forecast_provider": "Hindcast — analysed hazard, no forecast",
+    "issued_utc": "2021-08-29T02:00:00+00:00",
+    "is_latest_initialization": false,
+    "cycles": 1,
+    "horizon_hours": 110.0,
+    "product_window_hours": null,
+    "product_step_hours": null,
+    "windows_overlap": false
+  },
+  {
+    "hazard_source": "hindcast:hindcast-baseline-bplus-LAURA_2020",
+    "forecast_provider": "Hindcast — analysed hazard, no forecast",
+    "issued_utc": "2020-08-26T11:00:00+00:00",
+    "is_latest_initialization": false,
+    "cycles": 1,
+    "horizon_hours": 119.0,
+    "product_window_hours": null,
+    "product_step_hours": null,
+    "windows_overlap": false
+  },
+  {
+    "hazard_source": "hindcast:hindcast-baseline-bplus-ISAIAS_2020",
+    "forecast_provider": "Hindcast — analysed hazard, no forecast",
+    "issued_utc": "2020-08-02T11:00:00+00:00",
+    "is_latest_initialization": false,
+    "cycles": 1,
+    "horizon_hours": 70.0,
+    "product_window_hours": null,
+    "product_step_hours": null,
+    "windows_overlap": false
+  },
+  {
+    "hazard_source": "hindcast:hindcast-baseline-bplus-MICHAEL_2018",
+    "forecast_provider": "Hindcast — analysed hazard, no forecast",
+    "issued_utc": "2018-10-09T03:00:00+00:00",
+    "is_latest_initialization": false,
+    "cycles": 1,
+    "horizon_hours": 100.0,
+    "product_window_hours": null,
+    "product_step_hours": null,
+    "windows_overlap": false
+  },
+  {
+    "hazard_source": "hindcast:hindcast-baseline-bplus-FLORENCE_2018",
+    "forecast_provider": "Hindcast — analysed hazard, no forecast",
+    "issued_utc": "2018-09-13T08:00:00+00:00",
+    "is_latest_initialization": false,
+    "cycles": 1,
+    "horizon_hours": 107.0,
+    "product_window_hours": null,
+    "product_step_hours": null,
+    "windows_overlap": false
+  },
+  {
+    "hazard_source": "hindcast:hindcast-baseline-bplus-IRMA_2017",
+    "forecast_provider": "Hindcast — analysed hazard, no forecast",
+    "issued_utc": "2017-09-09T11:00:00+00:00",
+    "is_latest_initialization": false,
+    "cycles": 1,
+    "horizon_hours": 85.0,
+    "product_window_hours": null,
+    "product_step_hours": null,
+    "windows_overlap": false
+  },
+  {
+    "hazard_source": "hindcast:hindcast-baseline-bplus-HARVEY_2017",
+    "forecast_provider": "Hindcast — analysed hazard, no forecast",
+    "issued_utc": "2017-08-23T21:00:00+00:00",
+    "is_latest_initialization": false,
+    "cycles": 1,
+    "horizon_hours": 241.0,
+    "product_window_hours": null,
+    "product_step_hours": null,
+    "windows_overlap": false
+  },
+  {
+    "hazard_source": "hindcast:hindcast-baseline-bplus-MATTHEW_2016",
+    "forecast_provider": "Hindcast — analysed hazard, no forecast",
+    "issued_utc": "2016-09-29T02:00:00+00:00",
+    "is_latest_initialization": false,
+    "cycles": 1,
+    "horizon_hours": 858.0,
+    "product_window_hours": null,
+    "product_step_hours": null,
+    "windows_overlap": false
   }
 ]

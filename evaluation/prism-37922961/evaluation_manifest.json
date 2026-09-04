@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "generated_utc": "2026-09-04T21:03:47.490497+00:00",
+  "code_version": "0.0.1",
+  "fitset": {
+    "path": "/panfs/ccds02/nobackup/people/afahad/stormgrid/processed/fitset.parquet",
+    "sha256": "128a32e2ce42e8ac3dee66fe94d007a806b7484c493256797028649e65f1cbeb",
+    "source_content_hash": "cff66388d8073c486dae9434f488847d",
+    "evaluation_content_hash": "1659a16c5812f6ac083f7c726585f751",
+    "source_rows": 45743,
+    "source_events": 1547,
+    "evaluation_rows": 45740,
+    "evaluation_events": 1543
+  },
+  "event_identity": {
+    "hurdat": {
+      "path": "/panfs/ccds02/nobackup/people/afahad/stormgrid/raw/hurdat2/hurdat2-1851-2025-02272026.txt",
+      "sha256": "1b9b0c7beed5b4505838658b1d30e159fc84330c60891a58cfcf43ae55c37202"
+    },
+    "parquet": "event_identity_map.parquet",
+    "csv": "event_identity_map.csv",
+    "json": "event_identity_map.json"
+  },
+  "requested_storms": [
+    "MATTHEW_2016",
+    "HARVEY_2017",
+    "IRMA_2017",
+    "FLORENCE_2018",
+    "MICHAEL_2018",
+    "ISAIAS_2020",
+    "LAURA_2020",
+    "IDA_2021",
+    "IAN_2022",
+    "IDALIA_2023"
+  ],
+  "models": [
+    "baseline_a",
+    "baseline_b",
+    "baseline_bplus"
+  ],
+  "dashboard_model": "baseline_bplus",
+  "evaluation_complete": true,
+  "missing_storms": [],
+  "skipped_storms": [],
+  "matrix": {
+    "matrix_parquet": "evaluation_matrix.parquet",
+    "matrix_csv": "evaluation_matrix.csv",
+    "matrix_json": "evaluation_matrix.json",
+    "summary_parquet": "model_summary.parquet",
+    "summary_csv": "model_summary.csv"
+  },
+  "dashboard": {
+    "staging_root": "dashboard",
+    "cycles": [
+      "20160929T0200Z_hindcast-baseline-bplus-MATTHEW_2016",
+      "20170823T2100Z_hindcast-baseline-bplus-HARVEY_2017",
+      "20170909T1100Z_hindcast-baseline-bplus-IRMA_2017",
+      "20180913T0800Z_hindcast-baseline-bplus-FLORENCE_2018",
+      "20181009T0300Z_hindcast-baseline-bplus-MICHAEL_2018",
+      "20200802T1100Z_hindcast-baseline-bplus-ISAIAS_2020",
+      "20200826T1100Z_hindcast-baseline-bplus-LAURA_2020",
+      "20210829T0200Z_hindcast-baseline-bplus-IDA_2021",
+      "20220927T1800Z_hindcast-baseline-bplus-IAN_2022",
+      "20230829T2100Z_hindcast-baseline-bplus-IDALIA_2023"
+    ],
+    "bundle": "hindcast-evaluation.dashboard.tar.gz",
+    "checksum": "hindcast-evaluation.dashboard.tar.gz.sha256",
+    "published": false
+  }
+}

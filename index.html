@@ -46,33 +46,46 @@
         <span aria-hidden="true">◷</span>
         Archive
       </a>
+      <a id="evaluation-view-link" class="view-link" href="evaluation.html"
+         title="Hindcast evaluation of the county outage-risk model">
+        <span aria-hidden="true">&#9636;</span>
+        Evaluation
+      </a>
     </nav>
-    <div class="run-picker" id="run-picker" hidden>
-      <button type="button" id="run-toggle" class="theme-toggle run-toggle"
-              aria-haspopup="listbox" aria-expanded="false" aria-controls="run-menu"
-              title="Choose an available forecast initialization">
-        <span class="theme-icon" aria-hidden="true">◷</span>
-        <span id="run-label">Archived runs</span>
-        <span class="init-caret" aria-hidden="true">▾</span>
-      </button>
-      <div class="run-menu" id="run-menu" role="listbox" aria-label="Available forecast initializations" hidden></div>
-    </div>
-    <div class="init-picker" id="init-picker" hidden>
-      <button type="button" id="init-toggle" class="theme-toggle init-toggle"
-              aria-haspopup="listbox" aria-expanded="false" aria-controls="init-menu"
-              title="Choose which forecast initialization to display">
-        <span class="theme-icon" aria-hidden="true">◷</span>
-        <span class="init-text" id="init-label">Latest</span>
-        <span class="init-caret" aria-hidden="true">▾</span>
-      </button>
-      <div class="init-menu" id="init-menu" role="listbox" aria-label="Forecast initializations" hidden></div>
-    </div>
     <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle display theme" title="Switch between Command Center Dark and Corporate Office Light mode">
       <span class="theme-icon" aria-hidden="true">◐</span>
       <span class="theme-text">Theme</span>
     </button>
   </div>
 </header>
+
+<!-- The run/init pickers live in their own strip below the tab row, never
+     inside it. They only exist on pages with more than one run to choose
+     from -- today, only the archive -- and the tab row above must look
+     identical everywhere or switching tabs reads as a different page
+     loading rather than a section change on the same one. -->
+<div class="context-bar" id="context-bar" hidden>
+  <div class="run-picker" id="run-picker" hidden>
+    <button type="button" id="run-toggle" class="theme-toggle run-toggle"
+            aria-haspopup="listbox" aria-expanded="false" aria-controls="run-menu"
+            title="Choose an available forecast initialization">
+      <span class="theme-icon" aria-hidden="true">◷</span>
+      <span id="run-label">Archived runs</span>
+      <span class="init-caret" aria-hidden="true">▾</span>
+    </button>
+    <div class="run-menu" id="run-menu" role="listbox" aria-label="Available forecast initializations" hidden></div>
+  </div>
+  <div class="init-picker" id="init-picker" hidden>
+    <button type="button" id="init-toggle" class="theme-toggle init-toggle"
+            aria-haspopup="listbox" aria-expanded="false" aria-controls="init-menu"
+            title="Choose which forecast initialization to display">
+      <span class="theme-icon" aria-hidden="true">◷</span>
+      <span class="init-text" id="init-label">Latest</span>
+      <span class="init-caret" aria-hidden="true">▾</span>
+    </button>
+    <div class="init-menu" id="init-menu" role="listbox" aria-label="Forecast initializations" hidden></div>
+  </div>
+</div>
 
 <main class="workspace">
   <section class="overview-head" aria-label="Active forecast">
