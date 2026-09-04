@@ -22,7 +22,7 @@ const S = {
   mapScale: 1, mapBounds: null, mapOrigin: { ox: 0, oy: 0, x0: 0, y0: 0 },
   projectedCounties: [], projectedStates: [],
   needsRedraw: false, hitCanvas: null, hitCtx: null,
-  theme: localStorage.getItem('w2g_theme') || 'dark',
+  theme: localStorage.getItem('w2g_theme') || 'light',
 };
 
 const LAYERS = [
@@ -228,12 +228,31 @@ function windLabel(short) {
 }
 function layerLabel(layer) { return layer.key === 'peak_gust_ms' ? windLabel(true) : layer.label; }
 
-const RAMPS = {
+// County ramps, one set per theme. A sequential ramp encodes magnitude as
+// LIGHTNESS, so its anchor has to flip with the surface it is drawn on: on
+// the dark canvas low values sink toward the background and high values
+// glow; on the light canvas that inverts -- low values stay near white and
+// high values darken. Reusing the dark set on the light canvas is what made
+// the map read as a flat grey field with a few near-black counties: every
+// low value was nearly black on white, and the top of the range was the only
+// part still carrying colour.
+//
+// Both sets step monotonically in OKLab lightness (dark 0.24 -> 0.93+, light
+// 0.96+ -> 0.35) across roughly even intervals, so equal steps in the data
+// read as equal steps on screen.
+const RAMPS_DARK = {
   impact: ['#0f2231', '#184f68', '#df6c3a', '#fba72c', '#ffe9a0'],
   prob: ['#0f2334', '#2c4b8e', '#7952c4', '#c968e0', '#f3d9ff'],
   gust: ['#0d2230', '#155d78', '#22a2aa', '#5ce6c4', '#f0fdf7'],
   uncertainty: ['#0f2232', '#2f497a', '#7462bd', '#bb86e0', '#f5dbff'],
 };
+const RAMPS_LIGHT = {
+  impact: ['#fff7e0', '#fed08a', '#f79044', '#d4501a', '#7f2704'],
+  prob: ['#f6effc', '#dcc6f0', '#b48ade', '#8348bd', '#4a1d7d'],
+  gust: ['#e9f7f6', '#a8ddda', '#4bb5b8', '#1d7d95', '#0d3f5e'],
+  uncertainty: ['#f1eefc', '#cfc5ef', '#9d8bda', '#6b4fb8', '#38257c'],
+};
+const ramps = () => (S.theme === 'dark' ? RAMPS_DARK : RAMPS_LIGHT);
 
 const $ = (id) => document.getElementById(id);
 const compact = new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 });
@@ -1165,9 +1184,12 @@ function drawMapCanvas() {
 
   const layer = activeLayer();
   const [lo, hi] = layerDomain(layer);
-  const stops = RAMPS[layer.ramp];
+  const stops = ramps()[layer.ramp];
   const isDark = S.theme === 'dark';
-  const baseFill = isDark ? '#0b1622' : '#e2e8f0';
+  // No data is not a low value. On the light canvas the ramp starts near
+  // white, so the no-data grey has to stay neutral and no heavier than the
+  // ramp's first step, or empty counties would out-read populated ones.
+  const baseFill = isDark ? '#0b1622' : '#eceff3';
   const countyStroke = isDark ? '#081119' : '#cbd5e1';
   const strokeWidth = 0.5 / S.zoom;
 
@@ -1183,7 +1205,9 @@ function drawMapCanvas() {
     // Shaded color contrast: triggered counties shine at 100% brightness,
     // untriggered counties soften to 45% opacity so triggered areas pop visually
     if (hasTriggered && !isTrig) {
-      ctx.globalAlpha = isDark ? 0.42 : 0.50;
+      // Light-mode fills start pale, so the dark-mode amount of dimming
+      // would erase them; they need to stay readable while still receding.
+      ctx.globalAlpha = isDark ? 0.42 : 0.68;
     }
 
     ctx.fillStyle = val == null ? baseFill : rampColor(stops, (val - lo) / ((hi - lo) || 1));
@@ -2046,21 +2070,12 @@ function selectAvailableRun(run) {
   if (target != null) loadCycle(target);
 }
 
-// The context bar exists only to hold these two pickers, so it is never
-// shown on its own: it mirrors whichever of them currently has content.
-function syncContextBar() {
-  const bar = $('context-bar');
-  if (!bar) return;
-  const run = $('run-picker'), init = $('init-picker');
-  bar.hidden = (!run || run.hidden) && (!init || init.hidden);
-}
-
 function drawRunPicker() {
   const picker = $('run-picker'), menu = $('run-menu'), label = $('run-label');
   if (!picker || !menu || !label) return;
   const runs = availableRuns();
   picker.hidden = !S.archiveMode || runs.length < 2;
-  if (picker.hidden) { closeRunMenu(); syncContextBar(); return; }
+  if (picker.hidden) { closeRunMenu(); return; }
 
   label.textContent = 'Archived runs';
 
@@ -2115,7 +2130,7 @@ function drawRunPicker() {
     children.push(groupHeading('Hindcast verification \u2014 scored against observed outages'),
                   ...hindcasts.map(runRow));
   }
-  menu.replaceChildren(...children);  syncContextBar();
+  menu.replaceChildren(...children);
 }
 
 function selectInitialization(issued) {
@@ -2139,7 +2154,7 @@ function drawInitPicker() {
   // One initialization is not a choice; hide the control rather than offer a
   // menu with a single disabled row.
   picker.hidden = list.length < 2;
-  if (picker.hidden) { closeInitMenu(); syncContextBar(); return; }
+  if (picker.hidden) { closeInitMenu(); return; }
 
   const active = activeInitialization();
   const hindcast = Boolean(active && active.kind === 'hindcast');
@@ -2188,7 +2203,7 @@ function drawInitPicker() {
     button.addEventListener('click', () => selectInitialization(entry.issued));
     return button;
   });
-  menu.replaceChildren(heading, ...rows);  syncContextBar();
+  menu.replaceChildren(heading, ...rows);
 }
 
 function drawSourceSwitch() {

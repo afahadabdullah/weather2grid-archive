@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -104,9 +104,9 @@ dl.facts dd { margin: 0; font-family: var(--font-mono); font-size: 12px; word-br
 (function () {
   try {
     var stored = localStorage.getItem('w2g_theme');
-    document.documentElement.setAttribute('data-theme', stored === 'light' ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', stored === 'dark' ? 'dark' : 'light');
   } catch (error) {
-    document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.setAttribute('data-theme', 'light');
   }
 })();
 </script>

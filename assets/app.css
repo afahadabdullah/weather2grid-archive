@@ -372,33 +372,12 @@ h3 {
   color: var(--color-cyan);
 }
 
-/* Context bar -----------------------------------------------------------
-   A second, slimmer strip directly under the tab row. It exists ONLY to
-   hold the run/init pickers, and it collapses to nothing (JS sets [hidden]
-   on it) whenever neither picker has anything to offer. Keeping it out of
-   .mast-actions is deliberate: that row is the page's tab bar and has to
-   render pixel-identical on every page, whether or not this page happens to
-   have archived runs to pick from. */
-.context-bar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 8px clamp(16px, 2.5vw, 32px);
-  background: var(--bg-toolbar);
-  border-bottom: 1px solid var(--border-subtle);
-  position: sticky;
-  top: 58px;
-  z-index: 39;
-}
-.context-bar[hidden] {
-  display: none;
-}
-
 /* Forecast initialization picker -------------------------------------------
-   Sits inside the context bar and borrows the theme toggle's shape, because
-   both are view controls rather than parts of the forecast itself. It only
-   appears when the archive actually holds more than one initialization. */
+   Lives in the overview head beside the hazard source, NOT in the masthead:
+   it appears only where there is more than one run to choose from, and the
+   masthead has to render identically on every page. It borrows the theme
+   toggle's shape because both are view controls rather than parts of the
+   forecast itself. */
 .init-picker,
 .run-picker {
   position: relative;
@@ -551,6 +530,17 @@ h3 {
 }
 .overview-title-group h1 {
   margin-top: 2px;
+}
+/* Hazard source, and the run controls that belong with it. Both describe
+   WHICH run is on screen, so they sit together on one line; the pickers are
+   hidden whenever there is nothing to choose, leaving the source text
+   exactly where it was. */
+.overview-aside {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 .overview-source {
   text-align: right;

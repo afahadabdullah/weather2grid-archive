@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -59,42 +59,41 @@
   </div>
 </header>
 
-<!-- The run/init pickers live in their own strip below the tab row, never
-     inside it. They only exist on pages with more than one run to choose
-     from -- today, only the archive -- and the tab row above must look
-     identical everywhere or switching tabs reads as a different page
-     loading rather than a section change on the same one. -->
-<div class="context-bar" id="context-bar" hidden>
-  <div class="run-picker" id="run-picker" hidden>
-    <button type="button" id="run-toggle" class="theme-toggle run-toggle"
-            aria-haspopup="listbox" aria-expanded="false" aria-controls="run-menu"
-            title="Choose an available forecast initialization">
-      <span class="theme-icon" aria-hidden="true">◷</span>
-      <span id="run-label">Archived runs</span>
-      <span class="init-caret" aria-hidden="true">▾</span>
-    </button>
-    <div class="run-menu" id="run-menu" role="listbox" aria-label="Available forecast initializations" hidden></div>
-  </div>
-  <div class="init-picker" id="init-picker" hidden>
-    <button type="button" id="init-toggle" class="theme-toggle init-toggle"
-            aria-haspopup="listbox" aria-expanded="false" aria-controls="init-menu"
-            title="Choose which forecast initialization to display">
-      <span class="theme-icon" aria-hidden="true">◷</span>
-      <span class="init-text" id="init-label">Latest</span>
-      <span class="init-caret" aria-hidden="true">▾</span>
-    </button>
-    <div class="init-menu" id="init-menu" role="listbox" aria-label="Forecast initializations" hidden></div>
-  </div>
-</div>
-
 <main class="workspace">
   <section class="overview-head" aria-label="Active forecast">
     <div class="overview-title-group">
       <h1 id="event-name">Active Risk Outlook — Loading…</h1>
     </div>
-    <div class="overview-source">
-      <span>Operational Hazard Source</span>
-      <strong id="overview-provider">Loading…</strong>
+    <!-- The run/init pickers sit here, with the hazard source, rather than in
+         the masthead. They exist only where there is more than one run to
+         choose from -- in practice only the archive -- and the masthead has to
+         read identically on every page, so an archive-only control cannot live
+         in it. -->
+    <div class="overview-aside">
+      <div class="run-picker" id="run-picker" hidden>
+        <button type="button" id="run-toggle" class="theme-toggle run-toggle"
+                aria-haspopup="listbox" aria-expanded="false" aria-controls="run-menu"
+                title="Choose an available forecast initialization">
+          <span class="theme-icon" aria-hidden="true">◷</span>
+          <span id="run-label">Archived runs</span>
+          <span class="init-caret" aria-hidden="true">▾</span>
+        </button>
+        <div class="run-menu" id="run-menu" role="listbox" aria-label="Available forecast initializations" hidden></div>
+      </div>
+      <div class="init-picker" id="init-picker" hidden>
+        <button type="button" id="init-toggle" class="theme-toggle init-toggle"
+                aria-haspopup="listbox" aria-expanded="false" aria-controls="init-menu"
+                title="Choose which forecast initialization to display">
+          <span class="theme-icon" aria-hidden="true">◷</span>
+          <span class="init-text" id="init-label">Latest</span>
+          <span class="init-caret" aria-hidden="true">▾</span>
+        </button>
+        <div class="init-menu" id="init-menu" role="listbox" aria-label="Forecast initializations" hidden></div>
+      </div>
+      <div class="overview-source">
+        <span>Operational Hazard Source</span>
+        <strong id="overview-provider">Loading…</strong>
+      </div>
     </div>
   </section>
 

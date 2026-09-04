@@ -4,7 +4,7 @@
   "event_name": "Harvey 2017 — hindcast",
   "issued_utc": "2017-08-23T21:00:00+00:00",
   "lead_hours": 0.0,
-  "age_hours": 79176.74,
+  "age_hours": 79177.18,
   "freshness": "not evaluated",
   "synthetic": false,
   "release_gate_passed": false,
