@@ -18,7 +18,7 @@ const S = {
   // time to pin the view to an archived run.
   selectedInit: null,
   overlays: { states: true, track: true, nhc: false, wind: true, extrapolation: false, threshold: true },
-  view: 'event', zoom: 1, panX: 0, panY: 0, dragging: null,
+  view: 'conus', zoom: 1, panX: 0, panY: 0, dragging: null,
   mapScale: 1, mapBounds: null, mapOrigin: { ox: 0, oy: 0, x0: 0, y0: 0 },
   projectedCounties: [], projectedStates: [],
   needsRedraw: false, hitCanvas: null, hitCtx: null,
@@ -374,7 +374,12 @@ function initViewNavigation() {
   const active = S.archiveMode ? archive : live;
   active.setAttribute('aria-current', 'page');
   if (S.archiveMode) archive.classList.add('archive-active');
-  document.documentElement.dataset.view = S.archiveMode ? 'archive' : 'live';
+  // Deliberately NOT `data-view`: the map extent buttons are selected with
+  // [data-view], so stamping the same attribute on <html> bound the extent
+  // handler to the document root. Every click anywhere then bubbled into it and
+  // silently reset the view to "live", which killed CONUS / Event / Storm /
+  // Focus Max and snapped the map back to zoom 1 on any county click.
+  document.documentElement.dataset.surface = S.archiveMode ? 'archive' : 'live';
 }
 
 function debounce(fn, wait) {
@@ -493,7 +498,7 @@ function wireEvents() {
       zoomMap(1 / 1.3);
     }
     if (event.key === '0' && !/INPUT|SELECT|TEXTAREA/.test(event.target.tagName)) {
-      resetViewport(); requestMapRedraw();
+      applyMapView('conus');
     }
   });
 
@@ -768,7 +773,7 @@ function updateCycleChrome() {
 
   [...$('cycle-dots').children].forEach((dot, i) => dot.classList.toggle('active', i === position));
 
-  document.querySelectorAll('[data-overlay="track"],[data-overlay="nhc"],[data-overlay="wind"],[data-view="storm"]').forEach((btn) => {
+  document.querySelectorAll('[data-overlay="track"],[data-overlay="nhc"],[data-overlay="wind"],button[data-view="storm"]').forEach((btn) => {
     const isNhcBtn = btn.dataset.overlay === 'nhc';
     const hasData = isNhcBtn
       ? Boolean(S.nhcTracks && S.nhcTracks.length)
@@ -938,17 +943,25 @@ function zoomMap(factor, cx = ($('map').clientWidth || 900) / 2, cy = ($('map').
 function clampViewport() {
   const W = $('map').clientWidth || 900;
   const H = $('map').clientHeight || 560;
+  // The projection is fitted to the canvas at zoom 1, so at zoom z the map
+  // spans W*z by H*z. Panning is bounded so that span always covers the
+  // viewport. The old asymmetric clamp (+0.5 / -1.5 of the range) let a focus
+  // jump land its target off-centre and let a drag push the map off-canvas.
   const maxPanX = W * (S.zoom - 1);
   const maxPanY = H * (S.zoom - 1);
 
-  S.panX = Math.min(maxPanX * 0.5, Math.max(-maxPanX * 1.5, S.panX));
-  S.panY = Math.min(maxPanY * 0.5, Math.max(-maxPanY * 1.5, S.panY));
+  S.panX = Math.min(0, Math.max(-maxPanX, S.panX));
+  S.panY = Math.min(0, Math.max(-maxPanY, S.panY));
 }
 
-function focusMapPoint(bx, by, targetZoom = 3.5) {
+// `exact` forces the zoom level instead of keeping a deeper one. Focus Max
+// needs it: an operator already at 8x asking to "focus max" wants the framing
+// the button promises, not their old zoom re-centred.
+function focusMapPoint(bx, by, targetZoom = 3.5, { exact = false } = {}) {
   const W = $('map').clientWidth || 900;
   const H = $('map').clientHeight || 560;
-  S.zoom = Math.max(S.zoom, targetZoom);
+  const target = Math.max(1, Math.min(12, targetZoom));
+  S.zoom = exact ? target : Math.max(S.zoom, target);
   S.panX = W / 2 - bx * S.zoom;
   S.panY = H / 2 - by * S.zoom;
   clampViewport();
@@ -972,6 +985,10 @@ function projectMapGeometry() {
     const geom = feature.geometry || {};
     const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates || [];
     const projectedRings = [];
+    // Per-county extent in projected space, so the event footprint can be
+    // fitted from a subset of counties instead of the whole product domain.
+    const bbox = [Infinity, Infinity, -Infinity, -Infinity];
+    let sumX = 0, sumY = 0, nPts = 0;
 
     for (const poly of polys) {
       for (const ring of poly) {
@@ -982,12 +999,18 @@ function projectMapGeometry() {
           countyBounds[1] = Math.min(countyBounds[1], py);
           countyBounds[2] = Math.max(countyBounds[2], px);
           countyBounds[3] = Math.max(countyBounds[3], py);
+          bbox[0] = Math.min(bbox[0], px);
+          bbox[1] = Math.min(bbox[1], py);
+          bbox[2] = Math.max(bbox[2], px);
+          bbox[3] = Math.max(bbox[3], py);
+          sumX += px; sumY += py; nPts += 1;
           ringPoints.push(px, py);
         }
         projectedRings.push(ringPoints);
       }
     }
-    rawCounties.push({ fips, rings: projectedRings, feature });
+    const projCentroid = nPts ? [sumX / nPts, sumY / nPts] : null;
+    rawCounties.push({ fips, rings: projectedRings, bbox, projCentroid, feature });
   }
 
   // Basemap state boundaries
@@ -1042,40 +1065,142 @@ function projectMapGeometry() {
   // Restrict storm bounding to CONUS operational theater (Lon: -128°W to -64°W, Lat: 16°N to 54°N)
   // Prevents far-away open Pacific (Hawaii) or deep Atlantic storms from shifting CONUS to the side!
   const isNearConus = (pt) => pt && pt.lon >= -128 && pt.lon <= -64 && pt.lat >= 16 && pt.lat <= 54;
-  const conusStorms = visibleStorms.map((st) => {
+  const clipToConus = (list) => list.map((st) => {
     const nearPts = (st.track || []).filter(isNearConus);
     return nearPts.length ? { ...st, track: nearPts } : null;
   }).filter(Boolean);
-  const conusTracks = conusStorms.flatMap((st) => st.track || []);
+  const conusStorms = clipToConus(visibleStorms);
 
-  let b = [...countyBounds];
-  if (S.view === 'conus' && rawStates.length) {
-    // CONUS view is rigidly locked to state boundaries: NEVER shifts
-    b = [...stateBounds];
-  } else if (S.view === 'storm' && conusTracks.length) {
-    b = [Infinity, Infinity, -Infinity, -Infinity];
-    conusStorms.forEach((item) => {
+  // Bounding box around a set of tracks, including each point's cone and 34kt
+  // wind field. Returns null when nothing bounds, so callers can fall back
+  // instead of quietly rendering an empty extent.
+  const trackBounds = (storms) => {
+    const box = [Infinity, Infinity, -Infinity, -Infinity];
+    let any = false;
+    storms.forEach((item) => {
       (item.track || []).forEach((pt) => {
         const [px, py] = proj(pt.lon, pt.lat);
         const windKm = Math.max(pt.uncertainty_km || 0, (item.wind_radii_km && item.wind_radii_km['34kt']) || 150);
         const r = (windKm + 180) / 6371;
-        b[0] = Math.min(b[0], px - r); b[1] = Math.min(b[1], py - r);
-        b[2] = Math.max(b[2], px + r); b[3] = Math.max(b[3], py + r);
+        box[0] = Math.min(box[0], px - r); box[1] = Math.min(box[1], py - r);
+        box[2] = Math.max(box[2], px + r); box[3] = Math.max(box[3], py + r);
+        any = true;
       });
     });
-  } else if (S.view === 'event') {
-    // Event view is anchored to the county footprint
-    b = [...countyBounds];
-    if (currentStorm && currentStorm.track && S.overlays.track) {
-      const nearPts = currentStorm.track.filter(isNearConus);
-      nearPts.forEach((pt) => {
+    return any ? box : null;
+  };
+
+  const conusExtent = rawStates.length ? [...stateBounds] : [...countyBounds];
+
+  // Event extent. The county product covers the whole CONUS domain every cycle,
+  // so the raw county extent IS the CONUS extent - using it made "Event"
+  // indistinguishable from "CONUS". The event is instead fitted to where the
+  // risk actually sits: the counties over the operator threshold plus the top
+  // of the expected-outage ranking, trimmed to their outage-weighted 10th-90th
+  // percentile so a couple of isolated counties cannot stretch the frame back
+  // out to the full domain. A concentrated event snaps tight; a genuinely
+  // CONUS-wide risk day stays wide, which is the honest answer.
+  const eventExtent = () => {
+    const byFipsGeom = new Map(rawCounties.map((c) => [String(c.fips), c]));
+    const picks = new Map();
+    const add = (fips) => {
+      const key = String(fips);
+      const geomEntry = byFipsGeom.get(key);
+      const row = S.byFips.get(key);
+      if (geomEntry && geomEntry.projCentroid && row) picks.set(key, { geomEntry, row });
+    };
+    (S.triggered || new Set()).forEach(add);
+    [...S.counties]
+      .sort((a, b) => (Number(b.expected_customers_out) || 0) - (Number(a.expected_customers_out) || 0))
+      .slice(0, 150)
+      .forEach((row) => add(row.county_fips));
+
+    const points = [...picks.values()].map(({ geomEntry, row }) => ({
+      cx: geomEntry.projCentroid[0],
+      cy: geomEntry.projCentroid[1],
+      bbox: geomEntry.bbox,
+      weight: Math.max(1, Number(row.expected_customers_out) || 0),
+    }));
+    if (points.length < 3) return [...countyBounds];
+
+    const weightedQuantile = (values, q) => {
+      const sorted = [...values].sort((a, b) => a.v - b.v);
+      const total = sorted.reduce((sum, item) => sum + item.w, 0);
+      let acc = 0;
+      for (const item of sorted) {
+        acc += item.w;
+        if (acc >= total * q) return item.v;
+      }
+      return sorted[sorted.length - 1].v;
+    };
+    const xs = points.map((p) => ({ v: p.cx, w: p.weight }));
+    const ys = points.map((p) => ({ v: p.cy, w: p.weight }));
+    const core = [
+      weightedQuantile(xs, 0.10), weightedQuantile(ys, 0.10),
+      weightedQuantile(xs, 0.90), weightedQuantile(ys, 0.90),
+    ];
+
+    // Grow the core box so every county whose centre falls inside it is shown
+    // whole rather than sliced by the frame edge.
+    const box = [...core];
+    points.forEach((p) => {
+      if (p.cx < core[0] || p.cx > core[2] || p.cy < core[1] || p.cy > core[3]) return;
+      box[0] = Math.min(box[0], p.bbox[0]); box[1] = Math.min(box[1], p.bbox[1]);
+      box[2] = Math.max(box[2], p.bbox[2]); box[3] = Math.max(box[3], p.bbox[3]);
+    });
+
+    // Only pull the cyclone track into the event frame when the storm is
+    // actually driving this event, tested as "a risk county sits inside the
+    // storm's wind field plus 300 km" rather than as boxes that merely overlap.
+    // A hurricane sitting off Baja is real, but it is not a reason to drag a
+    // Plains wind event 2000 km out over the Pacific.
+    if (currentStorm && S.overlays.track) {
+      const near = clipToConus([currentStorm]);
+      const stormBox = trackBounds(near);
+      const drivesEvent = near.some((item) => (item.track || []).some((pt) => {
         const [px, py] = proj(pt.lon, pt.lat);
-        const r = Math.max(0, pt.uncertainty_km || 0) / 6371;
-        b[0] = Math.min(b[0], px - r); b[1] = Math.min(b[1], py - r);
-        b[2] = Math.max(b[2], px + r); b[3] = Math.max(b[3], py + r);
-      });
+        const windKm = Math.max(pt.uncertainty_km || 0, (item.wind_radii_km && item.wind_radii_km['34kt']) || 150);
+        const reach = (windKm + 300) / 6371;
+        return points.some((c) => Math.hypot(c.cx - px, c.cy - py) <= reach);
+      }));
+      if (stormBox && drivesEvent) {
+        box[0] = Math.min(box[0], stormBox[0]); box[1] = Math.min(box[1], stormBox[1]);
+        box[2] = Math.max(box[2], stormBox[2]); box[3] = Math.max(box[3], stormBox[3]);
+      }
     }
+    return box;
+  };
+
+  // Never fit tighter than roughly 6° of longitude: a single-county event
+  // should read as a region, not as a wall of one polygon.
+  const MIN_SPAN = 6 / 57.2958;
+  const enforceMinSpan = (box) => {
+    const out = [...box];
+    const spanX = out[2] - out[0], spanY = out[3] - out[1];
+    if (spanX < MIN_SPAN) {
+      const mid = (out[0] + out[2]) / 2;
+      out[0] = mid - MIN_SPAN / 2; out[2] = mid + MIN_SPAN / 2;
+    }
+    if (spanY < MIN_SPAN * 0.7) {
+      const mid = (out[1] + out[3]) / 2;
+      out[1] = mid - MIN_SPAN * 0.35; out[3] = mid + MIN_SPAN * 0.35;
+    }
+    return out;
+  };
+
+  let b;
+  if (S.view === 'conus') {
+    // CONUS view is rigidly locked to state boundaries: NEVER shifts.
+    b = conusExtent;
+  } else if (S.view === 'storm') {
+    // Prefer what is drawn, but never leave the button dead: fall back to every
+    // known track, then to CONUS, rather than silently showing the county
+    // extent (which is what made Storm look like it did nothing).
+    b = trackBounds(conusStorms) || trackBounds(clipToConus(rawList)) || conusExtent;
+  } else {
+    b = eventExtent();
   }
+  b = enforceMinSpan(b);
 
   let [x0, y0, x1, y1] = b;
   const pad = 32;
@@ -1138,7 +1263,14 @@ function projectMapGeometry() {
   // Update domain label
   const states = [...new Set(S.counties.map((r) => r.state))].sort();
   const viewName = S.view === 'storm' ? 'Storm Extent' : S.view === 'conus' ? 'CONUS Extent' : 'Event Extent';
-  $('map-domain').textContent = `${viewName} · ${integer.format(S.counties.length)} counties`;
+  const inFrame = S.projectedCounties.filter((c) => {
+    const [cx, cy] = c.centroid;
+    return cx >= 0 && cx <= W && cy >= 0 && cy <= H;
+  }).length;
+  const countLabel = S.view === 'event' && inFrame && inFrame < S.counties.length * 0.9
+    ? `${integer.format(inFrame)} of ${integer.format(S.counties.length)} counties`
+    : `${integer.format(S.counties.length)} counties`;
+  $('map-domain').textContent = `${viewName} · ${countLabel}`;
   $('map-domain').title = `${states.join(' + ')} · ${S.counties.length} counties in active footprint`;
 }
 
@@ -1652,6 +1784,9 @@ function handlePointerHover(mx, my, clientX, clientY) {
 function handlePointerClick(mx, my) {
   const hit = getCountyAtScreen(mx, my);
   if (!hit) return;
+  // Inspecting a county re-centres it and never pulls the zoom back out: an
+  // operator who has zoomed into a metro keeps that scale while they click
+  // through neighbouring counties.
   focusMapPoint(hit.centroid[0], hit.centroid[1], 2.8);
   openDrawer(hit.fips);
 }
@@ -1767,33 +1902,77 @@ function wireOverlays() {
   }));
 }
 
-function wireMapControls() {
-  document.querySelectorAll('[data-view]').forEach((btn) => btn.addEventListener('click', () => {
-    const view = btn.dataset.view;
-    if (view === 'focus') {
-      // Find county with highest expected outages
-      const sorted = [...S.counties].sort((a, b) => (b.expected_customers_out || 0) - (a.expected_customers_out || 0));
-      if (sorted.length) {
-        const top = sorted[0];
-        const c = S.projectedCounties.find((pc) => pc.fips === String(top.county_fips));
-        if (c) {
-          focusMapPoint(c.centroid[0], c.centroid[1], 4.5);
-          openDrawer(c.fips);
-        }
-      }
-      return;
-    }
+// The extent buttons are `button[data-view]` and nothing else. Scoping the
+// selector to buttons is what keeps the document root (which carries its own
+// surface attribute) from ever being wired as a map control again.
+function viewButtons() {
+  return document.querySelectorAll('button[data-view]');
+}
 
-    S.view = view;
+function setViewButtonState(active) {
+  viewButtons().forEach((item) => item.setAttribute('aria-pressed', String(item.dataset.view === active)));
+}
+
+// Storm is useless with every track overlay switched off, so asking for the
+// storm extent turns on whichever track layer actually has data.
+function ensureStormOverlayVisible() {
+  if (S.overlays.track || S.overlays.nhc) return false;
+  const hasModelTrack = Boolean(S.track || (S.wnTracks && S.wnTracks.length));
+  const hasNhc = Boolean(S.nhcTracks && S.nhcTracks.length);
+  if (hasModelTrack) S.overlays.track = true;
+  else if (hasNhc) S.overlays.nhc = true;
+  else return false;
+  ['track', 'nhc'].forEach((key) => {
+    const btn = document.querySelector(`[data-overlay="${key}"]`);
+    if (btn) btn.setAttribute('aria-pressed', String(Boolean(S.overlays[key])));
+  });
+  return true;
+}
+
+function applyMapView(view) {
+  S.view = view;
+  const overlayChanged = view === 'storm' ? ensureStormOverlayVisible() : false;
+  resetViewport();
+  setViewButtonState(view);
+  projectMapGeometry();
+  requestMapRedraw();
+  if (overlayChanged) drawSourceStack();
+}
+
+// Focus Max is an action, not an extent. It needs a projection that contains
+// the counties, so a storm frame is swapped for the event frame before
+// centring, and the zoom is set outright instead of inheriting a deeper one.
+function focusHighestRiskCounty() {
+  if (S.view === 'storm') {
+    S.view = 'event';
     resetViewport();
-    document.querySelectorAll('[data-view]').forEach((item) => item.setAttribute('aria-pressed', String(item === btn)));
     projectMapGeometry();
-    requestMapRedraw();
+  }
+  const ranked = [...S.counties].sort((a, b) => {
+    const delta = (Number(b.expected_customers_out) || 0) - (Number(a.expected_customers_out) || 0);
+    return delta !== 0 ? delta : (Number(b.p90_customers_out) || 0) - (Number(a.p90_customers_out) || 0);
+  });
+  const top = ranked[0];
+  if (!top) return;
+  const county = S.projectedCounties.find((pc) => pc.fips === String(top.county_fips));
+  if (!county) return;
+  focusMapPoint(county.centroid[0], county.centroid[1], 6, { exact: true });
+  setViewButtonState('focus');
+  openDrawer(county.fips);
+}
+
+function wireMapControls() {
+  viewButtons().forEach((btn) => btn.addEventListener('click', () => {
+    const view = btn.dataset.view;
+    if (view === 'focus') focusHighestRiskCounty();
+    else if (view === 'conus' || view === 'event' || view === 'storm') applyMapView(view);
   }));
+  setViewButtonState(S.view);
 
   $('zoom-in').addEventListener('click', () => zoomMap(1.35));
   $('zoom-out').addEventListener('click', () => zoomMap(1 / 1.35));
-  $('zoom-reset').addEventListener('click', () => { resetViewport(); requestMapRedraw(); });
+  // Reset returns to the original CONUS framing, matching the CONUS button.
+  $('zoom-reset').addEventListener('click', () => applyMapView('conus'));
 }
 
 function wireSearch() {
@@ -2290,12 +2469,7 @@ function drawSourceStack() {
     row.className = 'source-row active';
     row.title = 'Show Google DeepMind WeatherNext AI ensemble cyclone tracks.';
     row.innerHTML = `<span><i></i><b>WeatherNext AI Cyclones</b></span><em>${S.wnTracks.length} active track${S.wnTracks.length === 1 ? '' : 's'}</em>`;
-    row.addEventListener('click', () => {
-      S.view = 'storm';
-      document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === 'storm')));
-      projectMapGeometry();
-      requestMapRedraw();
-    });
+    row.addEventListener('click', () => applyMapView('storm'));
     rows.push(row);
   }
 
@@ -2311,7 +2485,7 @@ function drawSourceStack() {
       if (nhcBtn) nhcBtn.setAttribute('aria-pressed', String(S.overlays.nhc));
       if (S.overlays.nhc) {
         S.view = 'storm';
-        document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === 'storm')));
+        setViewButtonState('storm');
       }
       projectMapGeometry();
       requestMapRedraw();
