@@ -882,6 +882,21 @@ h3 {
 .overlay-controls button[aria-pressed="false"] {
   opacity: 0.5;
 }
+/* A layer with nothing to draw - a cyclone track whose initialization does not
+   match this forecast - must not keep the lit "on" styling, or the map reads
+   as showing a track it is deliberately withholding. */
+.overlay-controls button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  color: var(--ink-muted);
+  border-color: var(--border-subtle);
+  background: var(--bg-app);
+  text-decoration: line-through;
+}
+.overlay-controls button:disabled:hover {
+  color: var(--ink-muted);
+  border-color: var(--border-subtle);
+}
 .overlay-controls i {
   display: inline-block;
   width: 10px;
@@ -1621,6 +1636,18 @@ td:first-child small {
 .source-row:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+/* Secondary line inside a source row (NHC advisory time, init labels). The
+   row is a flex row, so the label block stacks its own two lines. */
+.source-row>span:has(small) {
+  align-items: baseline;
+}
+.source-row small {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  line-height: 1.35;
+  color: var(--ink-muted);
 }
 
 /* Decision Panel (Cost/Loss Threshold) */

@@ -607,7 +607,15 @@ async function loadCycle(index, requestedTrackFrame = null) {
   S.counties = decodeCountyData(counties);
   S.geo = geo;
   S.activeProvider = providerFor(summary.hazard_source).id;
-  S.track = track && track.available !== false ? track : null;
+  // Defence in depth: export_products refuses to publish a mismatched
+  // track.json, but a stale cached copy must not slip past the browser either.
+  S.track = track && track.available !== false && Array.isArray(track.points) && track.points.length
+    ? (trackPairsWithCycle(track, cycle) ? track : null)
+    : null;
+  if (track && track.available !== false && !S.track) {
+    console.warn('[w2g] withheld cyclone track: init', trackInitIso(track),
+      'does not match cycle init', cycleInitIso(cycle));
+  }
   S.trackFrame = S.track ? Math.max(0, Math.min(
     S.track.points.length - 1,
     requestedTrackFrame == null ? Number(S.track.current_index || 0) : requestedTrackFrame
@@ -775,11 +783,21 @@ function updateCycleChrome() {
 
   document.querySelectorAll('[data-overlay="track"],[data-overlay="nhc"],[data-overlay="wind"],button[data-view="storm"]').forEach((btn) => {
     const isNhcBtn = btn.dataset.overlay === 'nhc';
+    const paired = hasPairedTrack();
+    const isTrackBtn = btn.dataset.overlay === 'track';
     const hasData = isNhcBtn
       ? Boolean(S.nhcTracks && S.nhcTracks.length)
-      : Boolean(S.track || (S.wnTracks && S.wnTracks.length) || (S.nhcTracks && S.nhcTracks.length));
+      : isTrackBtn
+        ? paired
+        : Boolean(paired || (S.nhcTracks && S.nhcTracks.length));
     btn.disabled = !hasData;
-    btn.title = hasData ? (isNhcBtn ? 'Toggle Official NOAA NHC Cyclone Tracks' : '') : 'No cyclone or storm track available.';
+    btn.title = isNhcBtn
+      ? (hasData ? 'Toggle Official NOAA NHC Cyclone Tracks' : 'No active NHC advisories in this bundle.')
+      : paired
+        ? (pairedWnTrackCount()
+            ? 'Toggle the cyclone track from this forecast\'s own initialization'
+            : 'Toggle this cycle\'s own storm track')
+        : pairingNote();
   });
 }
 
@@ -1041,8 +1059,10 @@ function projectMapGeometry() {
 
   // Determine view bounds
   const currentStorm = stormMeta();
+  if (currentStorm) currentStorm.isCycleOwnTrack = true;
   const nhcStorms = (S.nhcTracks || []).map((item) => stormMeta(item, null)).filter(Boolean);
-  const wnStorms = (S.wnTracks || []).map((item) => stormMeta(item, null)).filter(Boolean);
+  // Only tracks from this cycle's own initialization may be drawn.
+  const wnStorms = pairedWnTracks().map((item) => stormMeta(item, null)).filter(Boolean);
   const rawList = [];
   if (currentStorm) rawList.push(currentStorm);
   nhcStorms.forEach((st) => {
@@ -1056,7 +1076,7 @@ function projectMapGeometry() {
     }
   });
   const visibleStorms = rawList.filter((st) => {
-    if (st.trackSourceKind === 'weathernext' || st.isAiEnsemble) {
+    if (st.isCycleOwnTrack || st.trackSourceKind === 'weathernext' || st.isAiEnsemble) {
       return Boolean(S.overlays.track);
     }
     return Boolean(S.overlays.nhc);
@@ -1425,8 +1445,10 @@ const WIND_TIER_STYLE = {
 
 function drawStormCanvas(ctx, zoom) {
   const currentStorm = stormMeta();
+  if (currentStorm) currentStorm.isCycleOwnTrack = true;
   const nhcStorms = (S.nhcTracks || []).map((item) => stormMeta(item, null)).filter(Boolean);
-  const wnStorms = (S.wnTracks || []).map((item) => stormMeta(item, null)).filter(Boolean);
+  // Only tracks from this cycle's own initialization may be drawn.
+  const wnStorms = pairedWnTracks().map((item) => stormMeta(item, null)).filter(Boolean);
 
   // Combine tracks without dropping duplicates across different models
   const rawList = [];
@@ -1443,7 +1465,7 @@ function drawStormCanvas(ctx, zoom) {
   });
 
   const visibleStorms = rawList.filter((st) => {
-    if (st.trackSourceKind === 'weathernext' || st.isAiEnsemble) {
+    if (st.isCycleOwnTrack || st.trackSourceKind === 'weathernext' || st.isAiEnsemble) {
       return Boolean(S.overlays.track);
     }
     return Boolean(S.overlays.nhc);
@@ -1654,6 +1676,101 @@ function stormTier(vmaxKt, isCyclone = true) {
   const cat = stormCategory(vmaxKt);
   const color = { 1: '#fbbf24', 2: '#fb923c', 3: '#f87171', 4: '#f43f5e', 5: '#a78bfa' }[cat] || '#f87171';
   return { cat, color, label: `Category ${cat}` };
+}
+
+/* ==========================================================================
+   Initialization pairing
+
+   A cyclone track and a county-outage field are two views of ONE model run.
+   Showing a storm from one initialization over an outage forecast from
+   another is a false picture, so every track drawn on the map must carry a
+   forecast_init_time_utc equal to the selected cycle's own initialization.
+   Tracks that fail the test are not dimmed or approximated - they are not
+   drawn, and the storm panel says which init they came from instead.
+   The NOAA NHC layer is deliberately exempt: an official advisory is a
+   separate forecaster-issued product with its own issue time, not another
+   view of this model run, and it is labelled with that time wherever shown.
+   ========================================================================== */
+
+// The initialization the currently selected cycle was run from.
+function cycleInitIso(cycle = S.cycle) {
+  if (!cycle) return null;
+  const meta = cycle.meta || {};
+  return cycle.issued_utc || meta.forecast_init_time_utc || null;
+}
+
+function trackInitIso(trackSource) {
+  if (!trackSource) return null;
+  return trackSource.forecast_init_time_utc || trackSource.init_time_utc || null;
+}
+
+// Exact instant comparison. Two runs six hours apart are different runs.
+function sameInit(a, b) {
+  if (!a || !b) return false;
+  const x = Date.parse(a), y = Date.parse(b);
+  return Number.isFinite(x) && Number.isFinite(y) && x === y;
+}
+
+function trackPairsWithCycle(trackSource, cycle = S.cycle) {
+  return sameInit(trackInitIso(trackSource), cycleInitIso(cycle));
+}
+
+// WeatherNext tracks from the shared index that belong to THIS cycle's run.
+// The index is refreshed independently of county-risk exports, so it routinely
+// holds a newer (or older) init than the cycle on screen.
+function pairedWnTracks(cycle = S.cycle) {
+  return (S.wnTracks || []).filter((t) => trackPairsWithCycle(t, cycle));
+}
+
+// Every WeatherNext track the browser has loaded, paired or not - used only to
+// explain an absence, never to draw.
+function unpairedWnTracks(cycle = S.cycle) {
+  return (S.wnTracks || []).filter((t) => !trackPairsWithCycle(t, cycle));
+}
+
+function isWeatherNextTrack(trackSource) {
+  if (!trackSource) return false;
+  const provenance = `${trackSource.source || ''} ${trackSource.model || ''} ${trackSource.hazard_source || ''}`;
+  return /weathernext|deepmind/i.test(provenance);
+}
+
+// WeatherNext tracks actually on the map for this cycle: the per-cycle track
+// when it is a WeatherNext one, plus any paired entries from the shared index
+// that it does not already stand for.
+function pairedWnTrackCount(cycle = S.cycle) {
+  const fromIndex = pairedWnTracks(cycle);
+  if (!isWeatherNextTrack(S.track)) return fromIndex.length;
+  const own = S.track.storm_id || S.track.name;
+  return 1 + fromIndex.filter((t) => (t.storm_id || t.name) !== own).length;
+}
+
+function hasPairedTrack(cycle = S.cycle) {
+  return Boolean(S.track || pairedWnTracks(cycle).length);
+}
+
+// Null-safe short label for an initialization instant. formatCycleTime maps
+// a missing value onto the epoch, which would read as "Jan 1, 1970".
+function formatInitShort(iso) {
+  if (!iso) return 'an unknown initialization';
+  const date = new Date(iso);
+  if (Number.isNaN(+date)) return String(iso);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const hh = String(date.getUTCHours()).padStart(2, '0');
+  const mm = String(date.getUTCMinutes()).padStart(2, '0');
+  return `${months[date.getUTCMonth()]} ${date.getUTCDate()}, ${hh}:${mm} UTC`;
+}
+
+// One sentence naming the init that was withheld, for the storm panel.
+function pairingNote(cycle = S.cycle) {
+  const cycleInit = cycleInitIso(cycle);
+  const others = unpairedWnTracks(cycle);
+  if (!others.length) {
+    return `No WeatherNext cyclone track was produced for the ${formatInitShort(cycleInit)} initialization.`;
+  }
+  const inits = [...new Set(others.map((t) => trackInitIso(t)).filter(Boolean))];
+  const initList = inits.map(formatInitShort).join(', ') || 'another run';
+  return `The available WeatherNext track is initialized ${initList}, not ${formatInitShort(cycleInit)}. `
+    + 'A storm track is only shown alongside the outage forecast from the same initialization.';
 }
 
 function matchTrackIndexToCycle(trackSource, cycle) {
@@ -1917,7 +2034,7 @@ function setViewButtonState(active) {
 // storm extent turns on whichever track layer actually has data.
 function ensureStormOverlayVisible() {
   if (S.overlays.track || S.overlays.nhc) return false;
-  const hasModelTrack = Boolean(S.track || (S.wnTracks && S.wnTracks.length));
+  const hasModelTrack = hasPairedTrack();
   const hasNhc = Boolean(S.nhcTracks && S.nhcTracks.length);
   if (hasModelTrack) S.overlays.track = true;
   else if (hasNhc) S.overlays.nhc = true;
@@ -2464,12 +2581,21 @@ function drawSourceStack() {
   });
 
   if (S.wnTracks && S.wnTracks.length) {
+    // The cyclone index is refreshed on its own cadence, so it can hold a run
+    // this cycle does not share. Say which, rather than showing a count that
+    // implies tracks are on the map when they are not.
+    const paired = pairedWnTrackCount();
     const row = document.createElement('button');
     row.type = 'button';
-    row.className = 'source-row active';
-    row.title = 'Show Google DeepMind WeatherNext AI ensemble cyclone tracks.';
-    row.innerHTML = `<span><i></i><b>WeatherNext AI Cyclones</b></span><em>${S.wnTracks.length} active track${S.wnTracks.length === 1 ? '' : 's'}</em>`;
-    row.addEventListener('click', () => applyMapView('storm'));
+    row.className = `source-row${paired ? ' active' : ''}`;
+    row.disabled = !paired;
+    row.title = paired
+      ? 'Show Google DeepMind WeatherNext AI ensemble cyclone tracks for this initialization.'
+      : pairingNote();
+    row.innerHTML = paired
+      ? `<span><i></i><b>WeatherNext AI Cyclones</b></span><em>${paired} track${paired === 1 ? '' : 's'} · this init</em>`
+      : `<span><i></i><b>WeatherNext AI Cyclones</b></span><em>withheld · other init</em>`;
+    if (paired) row.addEventListener('click', () => applyMapView('storm'));
     rows.push(row);
   }
 
@@ -2478,7 +2604,11 @@ function drawSourceStack() {
     row.type = 'button';
     row.className = `source-row${S.overlays.nhc ? ' active' : ''}`;
     row.title = 'Toggle official NOAA NHC active tracks.';
-    row.innerHTML = `<span><i></i><b>NOAA NHC ocean storms</b></span><em>${S.overlays.nhc ? 'visible' : 'hidden (click to show)'}</em>`;
+    // NHC is not paired to a model init by design; its own advisory time is
+    // what makes it readable next to the forecast.
+    const advisory = S.nhcTracks.map((t) => t.advisory_issued_utc).filter(Boolean)[0];
+    row.innerHTML = `<span><i></i><b>NOAA NHC ocean storms</b><small>${advisory ? `advisory ${esc(String(advisory))}` : 'official advisory'}</small></span>`
+      + `<em>${S.overlays.nhc ? 'visible' : 'hidden (click to show)'}</em>`;
     row.addEventListener('click', () => {
       S.overlays.nhc = !S.overlays.nhc;
       const nhcBtn = document.querySelector('[data-overlay="nhc"]');
@@ -2505,7 +2635,9 @@ function drawForecast() {
   if (!storm) {
     $('storm-symbol').className = 'storm-symbol field';
     $('storm-symbol').innerHTML = '<b>W</b>';
-    $('storm-class').textContent = meta.event_type === 'tropical_cyclone' ? 'Cyclone metadata pending' : 'Area wind outlook · no cyclone track';
+    $('storm-class').textContent = unpairedWnTracks().length
+      ? 'Area wind outlook · track from another initialization not shown'
+      : meta.event_type === 'tropical_cyclone' ? 'Cyclone metadata pending' : 'Area wind outlook · no cyclone track';
     $('storm-name').textContent = S.cycle.event_name;
     const gusts = S.counties.map((r) => r.peak_gust_ms || 0);
     const peak = gusts.length ? Math.max(...gusts) : 0;
@@ -2516,11 +2648,16 @@ function drawForecast() {
     `;
     const chip = $('storm-chip');
     chip.hidden = false;
-    chip.innerHTML = '<b>Regional wind outlook</b><span>Showing exported county wind field; no ocean cyclone center or wind radii were supplied.</span>';
+    // Distinguish "this run has no cyclone" from "a cyclone exists but belongs
+    // to a different initialization". The second is the case a user would
+    // otherwise read as a missing feature.
+    chip.innerHTML = unpairedWnTracks().length
+      ? `<b>Cyclone track withheld · initialization mismatch</b><span>${esc(pairingNote())}</span>`
+      : '<b>Regional wind outlook</b><span>Showing exported county wind field; no ocean cyclone center or wind radii were supplied.</span>';
     return;
   }
 
-  const trackObj = S.track || (S.wnTracks && S.wnTracks[0]) || (S.nhcTracks && S.nhcTracks[0]) || {};
+  const trackObj = S.track || pairedWnTracks()[0] || (S.nhcTracks && S.nhcTracks[0]) || {};
   const currentPt = (storm.track && storm.track[storm.currentIndex]) || {};
   const curLead = currentPt.lead_hours != null ? currentPt.lead_hours : (S.cycle.lead_hours || 0);
 
@@ -2536,9 +2673,11 @@ function drawForecast() {
   `;
   const chip = $('storm-chip');
   chip.hidden = false;
+  // Naming the shared init is the visible half of the pairing guarantee.
+  const initLabel = esc(formatInitShort(cycleInitIso()));
   chip.innerHTML = storm.isCyclone
-    ? `<b>${esc(storm.classification || 'Cyclone')}${storm.category ? ` · Cat ${storm.category}` : ''}</b><span>Fix +${curLead}h · ${storm.max_wind_kt || '—'} kt · ${storm.min_pressure_hpa || '—'} hPa</span>`
-    : `<b>Inland surface low</b><span>Fix +${curLead}h · no ocean radii</span>`;
+    ? `<b>${esc(storm.classification || 'Cyclone')}${storm.category ? ` · Cat ${storm.category}` : ''}</b><span>Fix +${curLead}h · ${storm.max_wind_kt || '—'} kt · ${storm.min_pressure_hpa || '—'} hPa · same init as outage forecast (${initLabel})</span>`
+    : `<b>Inland surface low</b><span>Fix +${curLead}h · no ocean radii · same init as outage forecast (${initLabel})</span>`;
 }
 
 function drawTail() {
