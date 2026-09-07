@@ -1336,7 +1336,7 @@ input[type="range"] {
   text-transform: uppercase;
 }
 .pill.stale { background: var(--color-amber-glow); color: var(--color-amber); }
-.pill.degraded, .pill.not-evaluated { background: var(--color-amber-glow); color: var(--color-amber); }
+.pill.degraded, .pill.not-evaluated, .pill.in-validation-mode { background: var(--color-amber-glow); color: var(--color-amber); }
 .pill.unknown { background: var(--bg-subtle); color: var(--ink-muted); }
 .pill.archived { background: var(--color-amber-glow); color: var(--color-amber); border: 1px solid var(--color-amber); }
 .pill.hindcast { background: var(--color-violet-glow); color: var(--color-violet); border: 1px solid var(--color-violet); }
@@ -1512,7 +1512,7 @@ td:first-child small {
   font-weight: 750;
   text-transform: uppercase;
 }
-.source-status.degraded, .source-status.not-evaluated {
+.source-status.degraded, .source-status.not-evaluated, .source-status.in-validation-mode {
   background: var(--color-amber-glow);
   color: var(--color-amber);
 }

@@ -770,10 +770,10 @@ function updateCycleChrome() {
   }
 
   const liveAgeHours = Number.isNaN(+issued) ? null : (Date.now() - issued.getTime()) / 36e5;
-  const isNotEvaluated = Boolean(cycle.degraded_mode || cycle.freshness === 'degraded' || cycle.freshness === 'not evaluated');
+  const isNotEvaluated = Boolean(cycle.degraded_mode || cycle.freshness === 'degraded' || cycle.freshness === 'not evaluated' || cycle.freshness === 'in validation mode');
   const freshness = hindcast ? 'hindcast'
     : archived ? 'archived'
-    : isNotEvaluated ? 'not evaluated'
+    : isNotEvaluated ? 'in validation mode'
     : liveAgeHours != null && liveAgeHours > 12 ? 'stale' : (cycle.freshness || 'current');
   $('freshness').textContent = freshness;
   $('freshness').className = `pill ${freshness.replace(/\s+/g, '-')}`;
@@ -2628,9 +2628,9 @@ function drawSourceStack() {
 
 function drawForecast() {
   const meta = S.cycle.meta, storm = stormMeta(), provider = meta.forecast_provider || meta.hazard_source || 'unknown';
-  const isNotEvaluated = Boolean(S.cycle.degraded_mode || S.cycle.freshness === 'degraded' || S.cycle.freshness === 'not evaluated');
-  $('provider-status').textContent = isNotEvaluated ? 'not evaluated' : (S.cycle.provider_status || 'ok');
-  $('provider-status').className = `source-status${isNotEvaluated ? ' not-evaluated' : ''}`;
+  const isNotEvaluated = Boolean(S.cycle.degraded_mode || S.cycle.freshness === 'degraded' || S.cycle.freshness === 'not evaluated' || S.cycle.freshness === 'in validation mode');
+  $('provider-status').textContent = isNotEvaluated ? 'in validation mode' : (S.cycle.provider_status || 'ok');
+  $('provider-status').className = `source-status${isNotEvaluated ? ' in-validation-mode not-evaluated' : ''}`;
 
   if (!storm) {
     $('storm-symbol').className = 'storm-symbol field';
