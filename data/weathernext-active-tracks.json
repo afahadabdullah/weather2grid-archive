@@ -559,7 +559,7 @@
     }
   ],
   "source": "Google DeepMind WeatherNext 3 Cyclones (AI Ensemble)",
-  "retrieved_at_utc": "2026-09-07T05:50:32.648835+00:00",
+  "retrieved_at_utc": "2026-09-07T15:41:18.063243+00:00",
   "forecast_init_time_utc": "2026-09-06T18:00:00+00:00",
   "hazard_source": "weathernext3_100m_wind_proxy",
   "forecast_provider": "Google DeepMind WeatherNext 3 via BigQuery",
@@ -567,11 +567,17 @@
   "pairing_key": "forecast_init_time_utc",
   "cycle_ids": [
     "20260906T1800Z_wn3x-conus-20260906-h024",
+    "20260906T1800Z_wn3x-conus-20260906-h036",
     "20260906T1800Z_wn3x-conus-20260906-h048",
+    "20260906T1800Z_wn3x-conus-20260906-h060",
     "20260906T1800Z_wn3x-conus-20260906-h072",
+    "20260906T1800Z_wn3x-conus-20260906-h084",
     "20260906T1800Z_wn3x-conus-20260906-h096",
+    "20260906T1800Z_wn3x-conus-20260906-h108",
     "20260906T1800Z_wn3x-conus-20260906-h120",
+    "20260906T1800Z_wn3x-conus-20260906-h132",
     "20260906T1800Z_wn3x-conus-20260906-h144",
+    "20260906T1800Z_wn3x-conus-20260906-h156",
     "20260906T1800Z_wn3x-conus-20260906-h168"
   ]
 }
