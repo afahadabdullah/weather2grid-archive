@@ -53,7 +53,8 @@
     "geometry_path": "geometries/7ebea388907d8fd8.geojson",
     "track_available": false,
     "is_latest_initialization": false,
-    "data_base": "https://afahadabdullah.github.io/weather2grid-archive"
+    "data_base": "https://afahadabdullah.github.io/weather2grid-archive",
+    "_archived": true
   },
   {
     "cycle_id": "20260901T1200Z_wn2-conus-20260901-day1",
@@ -94,7 +95,8 @@
     "geometry_path": "geometries/7ebea388907d8fd8.geojson",
     "track_available": false,
     "is_latest_initialization": false,
-    "data_base": "https://afahadabdullah.github.io/weather2grid-archive"
+    "data_base": "https://afahadabdullah.github.io/weather2grid-archive",
+    "_archived": true
   },
   {
     "cycle_id": "20260901T1200Z_wn2-conus-20260901-day2",
@@ -135,7 +137,8 @@
     "geometry_path": "geometries/7ebea388907d8fd8.geojson",
     "track_available": false,
     "is_latest_initialization": false,
-    "data_base": "https://afahadabdullah.github.io/weather2grid-archive"
+    "data_base": "https://afahadabdullah.github.io/weather2grid-archive",
+    "_archived": true
   },
   {
     "cycle_id": "20260901T1200Z_wn2-conus-20260901-day3",
@@ -176,7 +179,8 @@
     "geometry_path": "geometries/7ebea388907d8fd8.geojson",
     "track_available": false,
     "is_latest_initialization": false,
-    "data_base": "https://afahadabdullah.github.io/weather2grid-archive"
+    "data_base": "https://afahadabdullah.github.io/weather2grid-archive",
+    "_archived": true
   },
   {
     "cycle_id": "20230829T2100Z_hindcast-baseline-bplus-IDALIA_2023",
@@ -227,7 +231,8 @@
     "geometry_path": "geometries/3121ea86fe9c6633.geojson",
     "track_available": false,
     "is_latest_initialization": false,
-    "data_base": "https://afahadabdullah.github.io/weather2grid-archive"
+    "data_base": "https://afahadabdullah.github.io/weather2grid-archive",
+    "_archived": true
   },
   {
     "cycle_id": "20220927T1800Z_hindcast-baseline-bplus-IAN_2022",
@@ -278,7 +283,8 @@
     "geometry_path": "geometries/5ce2fc61755448a5.geojson",
     "track_available": false,
     "is_latest_initialization": false,
-    "data_base": "https://afahadabdullah.github.io/weather2grid-archive"
+    "data_base": "https://afahadabdullah.github.io/weather2grid-archive",
+    "_archived": true
   },
   {
     "cycle_id": "20210829T0200Z_hindcast-baseline-bplus-IDA_2021",
@@ -329,7 +335,8 @@
     "geometry_path": "geometries/782370ba5c7c5d0a.geojson",
     "track_available": false,
     "is_latest_initialization": false,
-    "data_base": "https://afahadabdullah.github.io/weather2grid-archive"
+    "data_base": "https://afahadabdullah.github.io/weather2grid-archive",
+    "_archived": true
   },
   {
     "cycle_id": "20200826T1100Z_hindcast-baseline-bplus-LAURA_2020",
@@ -380,7 +387,8 @@
     "geometry_path": "geometries/133a3e9fd041a5e5.geojson",
     "track_available": false,
     "is_latest_initialization": false,
-    "data_base": "https://afahadabdullah.github.io/weather2grid-archive"
+    "data_base": "https://afahadabdullah.github.io/weather2grid-archive",
+    "_archived": true
   },
   {
     "cycle_id": "20200802T1100Z_hindcast-baseline-bplus-ISAIAS_2020",
@@ -431,7 +439,8 @@
     "geometry_path": "geometries/bee240914431edfa.geojson",
     "track_available": false,
     "is_latest_initialization": false,
-    "data_base": "https://afahadabdullah.github.io/weather2grid-archive"
+    "data_base": "https://afahadabdullah.github.io/weather2grid-archive",
+    "_archived": true
   },
   {
     "cycle_id": "20181009T0300Z_hindcast-baseline-bplus-MICHAEL_2018",
@@ -482,7 +491,8 @@
     "geometry_path": "geometries/c46909ef090f7ec8.geojson",
     "track_available": false,
     "is_latest_initialization": false,
-    "data_base": "https://afahadabdullah.github.io/weather2grid-archive"
+    "data_base": "https://afahadabdullah.github.io/weather2grid-archive",
+    "_archived": true
   },
   {
     "cycle_id": "20180913T0800Z_hindcast-baseline-bplus-FLORENCE_2018",
@@ -533,7 +543,8 @@
     "geometry_path": "geometries/9792ec0e52ea9ece.geojson",
     "track_available": false,
     "is_latest_initialization": false,
-    "data_base": "https://afahadabdullah.github.io/weather2grid-archive"
+    "data_base": "https://afahadabdullah.github.io/weather2grid-archive",
+    "_archived": true
   },
   {
     "cycle_id": "20170909T1100Z_hindcast-baseline-bplus-IRMA_2017",
@@ -584,7 +595,8 @@
     "geometry_path": "geometries/15272f4cf9c5d732.geojson",
     "track_available": false,
     "is_latest_initialization": false,
-    "data_base": "https://afahadabdullah.github.io/weather2grid-archive"
+    "data_base": "https://afahadabdullah.github.io/weather2grid-archive",
+    "_archived": true
   },
   {
     "cycle_id": "20170823T2100Z_hindcast-baseline-bplus-HARVEY_2017",
@@ -635,7 +647,8 @@
     "geometry_path": "geometries/8b5e45d0ed938582.geojson",
     "track_available": false,
     "is_latest_initialization": false,
-    "data_base": "https://afahadabdullah.github.io/weather2grid-archive"
+    "data_base": "https://afahadabdullah.github.io/weather2grid-archive",
+    "_archived": true
   },
   {
     "cycle_id": "20160929T0200Z_hindcast-baseline-bplus-MATTHEW_2016",
@@ -686,6 +699,7 @@
     "geometry_path": "geometries/c1f754f79b5d6b43.geojson",
     "track_available": false,
     "is_latest_initialization": false,
-    "data_base": "https://afahadabdullah.github.io/weather2grid-archive"
+    "data_base": "https://afahadabdullah.github.io/weather2grid-archive",
+    "_archived": true
   }
 ]

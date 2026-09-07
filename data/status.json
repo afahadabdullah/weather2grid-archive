@@ -1,6 +1,6 @@
 {
   "version": "0.1.0",
-  "generated_at_utc": "2026-09-04T22:10:59.458064+00:00",
+  "generated_at_utc": "2026-09-07T03:21:26.865997+00:00",
   "cycles": 14,
   "initializations": 12,
   "archive_view": true,
@@ -67,6 +67,7 @@
     "geometry_path": "geometries/7ebea388907d8fd8.geojson",
     "track_available": false,
     "is_latest_initialization": false,
-    "data_base": "https://afahadabdullah.github.io/weather2grid-archive"
+    "data_base": "https://afahadabdullah.github.io/weather2grid-archive",
+    "_archived": true
   }
 }
