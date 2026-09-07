@@ -1,10 +1,10 @@
 {
   "cycle_id": "20260905T1200Z_wn3x-conus-20260905-h048",
   "event_id": "wn3x-conus-20260905-h048",
-  "event_name": "CONUS 7-day wind outlook — 24 h to +48 h",
+  "event_name": "CONUS 7-day wind outlook \u2014 24 h to +48 h",
   "issued_utc": "2026-09-05T12:00:00+00:00",
   "lead_hours": 30.0,
-  "age_hours": 39.63,
+  "age_hours": 8.45,
   "freshness": "not evaluated",
   "synthetic": false,
   "release_gate_passed": false,
@@ -34,7 +34,7 @@
   "display_frame_count": 1,
   "county_data_format": "w2g-columnar-v1",
   "training_data_cutoff_utc": "2026-01-01T00:00:00+00:00",
-  "geometry_path": "geometries/620f10a177ab8e17.geojson",
+  "geometry_path": "geometries/7ebea388907d8fd8.geojson",
   "track_available": true,
   "fields": {
     "required": [
@@ -128,7 +128,7 @@
     "windows_overlap": false,
     "cycle_id": "20260905T1200Z_wn3x-conus-20260905-h048",
     "product_provenance_hash": "91e899cfcd7f1d40efae083ef4c143a6",
-    "event_name": "CONUS 7-day wind outlook — 24 h to +48 h",
+    "event_name": "CONUS 7-day wind outlook \u2014 24 h to +48 h",
     "training_event_exclusions": [
       "OT20251228a36ecc"
     ],
@@ -166,7 +166,5 @@
     },
     "generated_utc": "2026-09-05T19:40:50.686946+00:00",
     "code_version": "0.0.1"
-  },
-  "track_init_time_utc": "2026-09-05T12:00:00+00:00",
-  "track_init_matches_cycle": true
+  }
 }

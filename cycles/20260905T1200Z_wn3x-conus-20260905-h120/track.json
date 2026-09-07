@@ -6,6 +6,8 @@
   "name": "Hurricane Marie (WeatherNext AI)",
   "basin": "EP",
   "model": "WeatherNext 3 / Cyclones",
+  "init_time_utc": "2026-09-05T12:00:00+00:00",
+  "advisory_issued_utc": "2026-09-05T12:00:00+00:00",
   "current_index": 19,
   "points": [
     {
@@ -372,14 +374,5 @@
       "r64_nm": 0.0,
       "stage": "LOW"
     }
-  ],
-  "init_time_utc": "2026-09-05T12:00:00+00:00",
-  "forecast_init_time_utc": "2026-09-05T12:00:00+00:00",
-  "advisory_issued_utc": "2026-09-05T12:00:00+00:00",
-  "hazard_source": "weathernext3_100m_wind_proxy",
-  "forecast_provider": "Google DeepMind WeatherNext 3 via BigQuery",
-  "model_version": 3,
-  "pairing_key": "forecast_init_time_utc",
-  "cycle_id": "20260905T1200Z_wn3x-conus-20260905-h120",
-  "paired_cycle_issued_utc": "2026-09-05T12:00:00+00:00"
+  ]
 }
