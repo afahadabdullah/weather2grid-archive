@@ -14,3 +14,19 @@ evaluation/*/evaluation_matrix.json
 evaluation/*/event_identity_map.json
 evaluation/*/models/*/*.parquet
 evaluation/*/models/*/*.manifest.json
+
+# Trained model weights, binaries, and transfer artifacts (must remain strictly local)
+*.pkl
+*.pickle
+*.pt
+*.pth
+*.bin
+*.ckpt
+*.h5
+*.onnx
+*.joblib
+*.tar.gz
+*.tar.gz.sha256
+models/
+artifacts/
+
