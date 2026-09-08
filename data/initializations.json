@@ -1,5 +1,16 @@
 [
   {
+    "hazard_source": "hrrr_forecast_calibrated_county_centroid",
+    "forecast_provider": "NOAA HRRR via AWS Open Data",
+    "issued_utc": "2026-09-07T01:00:00+00:00",
+    "is_latest_initialization": false,
+    "cycles": 1,
+    "horizon_hours": 18.0,
+    "product_window_hours": null,
+    "product_step_hours": null,
+    "windows_overlap": false
+  },
+  {
     "hazard_source": "weathernext3_100m_wind_proxy",
     "forecast_provider": "Google DeepMind WeatherNext 3 via BigQuery",
     "issued_utc": "2026-09-05T12:00:00+00:00",

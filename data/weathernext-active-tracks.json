@@ -559,7 +559,7 @@
     }
   ],
   "source": "Google DeepMind WeatherNext 3 Cyclones (AI Ensemble)",
-  "retrieved_at_utc": "2026-09-07T15:41:18.063243+00:00",
+  "retrieved_at_utc": "2026-09-08T00:42:41.749739+00:00",
   "forecast_init_time_utc": "2026-09-06T18:00:00+00:00",
   "hazard_source": "weathernext3_100m_wind_proxy",
   "forecast_provider": "Google DeepMind WeatherNext 3 via BigQuery",

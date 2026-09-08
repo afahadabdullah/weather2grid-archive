@@ -1,0 +1,29 @@
+{
+  "storm_id": "HRRRLOW-20260907T0100Z",
+  "name": "Automated HRRR low detection - not an official forecast",
+  "classification": "Surface low (HRRR-derived, experimental)",
+  "event_id": "hrrr-conus-20260907",
+  "event_name": "CONUS wind outlook",
+  "current_index": 0,
+  "points": [
+    {
+      "valid_utc": "2026-09-07T01:00:00+00:00",
+      "lat": 38.937,
+      "lon": -105.772,
+      "vmax_kt": 34,
+      "pmin_mb": 999,
+      "r34_nm": 0,
+      "r50_nm": 0,
+      "r64_nm": 0,
+      "stage": "Strong Low",
+      "lead_hours": 0
+    }
+  ],
+  "experimental": true,
+  "source": "hrrr_mslma_gust_automated_detection",
+  "synthetic": false,
+  "forecast_init_time_utc": "2026-09-07T01:00:00+00:00",
+  "init_time_utc": "2026-09-07T01:00:00+00:00",
+  "pairing_key": "forecast_init_time_utc",
+  "pairing_basis": "shipped with this cycle's product bundle"
+}
