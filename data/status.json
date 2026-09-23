@@ -1,6 +1,6 @@
 {
   "version": "0.1.0",
-  "generated_at_utc": "2026-09-21T20:49:33.083562+00:00",
+  "generated_at_utc": "2026-09-23T21:57:53.789074+00:00",
   "cycles": 55,
   "initializations": 17,
   "archive_view": true,
@@ -14,12 +14,12 @@
     "detail": "You are viewing an older forecast initialization. Use Live forecast for the current outlook."
   },
   "latest": {
-    "cycle_id": "20260914T1500Z_hrrr-conus-20260914",
-    "event_id": "hrrr-conus-20260914",
+    "cycle_id": "20260921T1600Z_hrrr-conus-20260921",
+    "event_id": "hrrr-conus-20260921",
     "event_name": "CONUS wind outlook",
-    "issued_utc": "2026-09-14T15:00:00+00:00",
+    "issued_utc": "2026-09-21T16:00:00+00:00",
     "lead_hours": 0.0,
-    "age_hours": 173.83,
+    "age_hours": 53.96,
     "freshness": "in validation mode",
     "synthetic": false,
     "release_gate_passed": false,
@@ -28,8 +28,8 @@
     "model_artifact_id": "bplus-d306fae20f",
     "hazard_source": "hrrr_forecast_calibrated_county_centroid",
     "forecast_provider": "NOAA HRRR via AWS Open Data",
-    "valid_start_utc": "2026-09-14T15:00:00+00:00",
-    "valid_end_utc": "2026-09-15T09:00:00+00:00",
+    "valid_start_utc": "2026-09-21T16:00:00+00:00",
+    "valid_end_utc": "2026-09-22T10:00:00+00:00",
     "forecast_window_hours": 18.0,
     "forecast_horizon_hours": 18.0,
     "input_lead_hours": [
