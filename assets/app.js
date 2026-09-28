@@ -291,7 +291,9 @@ function albers(lon0 = -96, lat0 = 37.5, lat1 = 29.5, lat2 = 45.5) {
 const JSON_CACHE = new Map();
 async function cachedJson(url) {
   if (!JSON_CACHE.has(url)) {
-    const p = fetch(url).then(r => {
+    const isLiveMeta = url.includes('status.json') || url.includes('cycles.json') || url.includes('active-tracks.json');
+    const fetchUrl = isLiveMeta ? (url.includes('?') ? `${url}&_t=${Date.now()}` : `${url}?_t=${Date.now()}`) : url;
+    const p = fetch(fetchUrl, isLiveMeta ? { cache: 'no-cache' } : {}).then(r => {
       if (!r.ok) throw new Error(`${url} → ${r.status}`);
       return r.json();
     }).catch(err => {
