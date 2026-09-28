@@ -1,10 +1,10 @@
 {
-  "cycle_id": "20260921T0600Z_wn3x-conus-20260921-h096",
-  "event_id": "wn3x-conus-20260921-h096",
-  "event_name": "CONUS wind outlook — 24 h to +96 h (rolling)",
-  "issued_utc": "2026-09-21T06:00:00+00:00",
-  "lead_hours": 78.0,
-  "age_hours": 180.18,
+  "cycle_id": "20260925T0600Z_wn3x-conus-20260925-h072",
+  "event_id": "wn3x-conus-20260925-h072",
+  "event_name": "CONUS wind outlook — 24 h to +72 h (rolling)",
+  "issued_utc": "2026-09-25T06:00:00+00:00",
+  "lead_hours": 54.0,
+  "age_hours": 84.18,
   "freshness": "in validation mode",
   "synthetic": false,
   "release_gate_passed": false,
@@ -13,15 +13,15 @@
   "model_artifact_id": "bplus-d306fae20f",
   "hazard_source": "weathernext3_100m_wind_proxy",
   "forecast_provider": "Google DeepMind WeatherNext 3 via BigQuery",
-  "valid_start_utc": "2026-09-24T12:00:00+00:00",
-  "valid_end_utc": "2026-09-25T06:00:00+00:00",
+  "valid_start_utc": "2026-09-27T12:00:00+00:00",
+  "valid_end_utc": "2026-09-28T06:00:00+00:00",
   "forecast_window_hours": 18.0,
-  "forecast_horizon_hours": 96.0,
+  "forecast_horizon_hours": 72.0,
   "input_lead_hours": [
-    78.0,
-    84.0,
-    90.0,
-    96.0
+    54.0,
+    60.0,
+    66.0,
+    72.0
   ],
   "lead_step_hours": 6.0,
   "product_window_hours": 24.0,
@@ -103,12 +103,12 @@
   "meta": {
     "schema_version": "0.1.0",
     "geography_version": "2024-tiger-cb",
-    "event_id": "wn3x-conus-20260921-h096",
+    "event_id": "wn3x-conus-20260925-h072",
     "event_type": "other_wind",
-    "forecast_init_time_utc": "2026-09-21T06:00:00+00:00",
-    "valid_start_utc": "2026-09-24T12:00:00+00:00",
-    "valid_end_utc": "2026-09-25T06:00:00+00:00",
-    "lead_hours": 78.0,
+    "forecast_init_time_utc": "2026-09-25T06:00:00+00:00",
+    "valid_start_utc": "2026-09-27T12:00:00+00:00",
+    "valid_end_utc": "2026-09-28T06:00:00+00:00",
+    "lead_hours": 54.0,
     "forecast_provider": "Google DeepMind WeatherNext 3 via BigQuery",
     "hazard_source": "weathernext3_100m_wind_proxy",
     "hazard_source_version": "weathernext_3_0_0_0p1deg",
@@ -116,20 +116,20 @@
     "impact_model_version": "0.1.0",
     "model_artifact_id": "bplus-d306fae20f",
     "training_data_cutoff_utc": "2026-01-01T00:00:00+00:00",
-    "input_provenance_hash": "1833288cf377040433aec4b0238a5377",
+    "input_provenance_hash": "9a78ddff3338936c33f24f901ae84b25",
     "input_lead_hours": [
-      78.0,
-      84.0,
-      90.0,
-      96.0
+      54.0,
+      60.0,
+      66.0,
+      72.0
     ],
     "lead_step_hours": 6.0,
     "window_hours": 24.0,
     "step_hours": 12.0,
     "windows_overlap": true,
-    "cycle_id": "20260921T0600Z_wn3x-conus-20260921-h096",
-    "product_provenance_hash": "fc2fa305f5416130b2185c42497001f3",
-    "event_name": "CONUS wind outlook — 24 h to +96 h (rolling)",
+    "cycle_id": "20260925T0600Z_wn3x-conus-20260925-h072",
+    "product_provenance_hash": "3f2dea7689dde7ce899af3041508baa6",
+    "event_name": "CONUS wind outlook — 24 h to +72 h (rolling)",
     "training_event_exclusions": [
       "OT20251228a36ecc"
     ],
@@ -153,19 +153,19 @@
     "eligibility": {
       "allowed": true,
       "basis": "chronological",
-      "detail": "cutoff 2026-01-01T00:00:00+00:00 < event start 2026-09-24T12:00:00+00:00"
+      "detail": "cutoff 2026-01-01T00:00:00+00:00 < event start 2026-09-27T12:00:00+00:00"
     },
     "members": 1,
     "counties": 3098,
     "regional": {
-      "expected": 116314.87373915745,
-      "p50": 107990.34856339992,
-      "p90": 164283.15331298189,
-      "p99": 261999.81191770014,
-      "p90_if_independent": 162677.0031490202,
-      "tail_understatement_ratio": 1.0098732465737053
+      "expected": 88085.94308926958,
+      "p50": 77165.41036144647,
+      "p90": 148773.96554050205,
+      "p99": 233957.92515602265,
+      "p90_if_independent": 151095.75480129087,
+      "tail_understatement_ratio": 0.984633656558768
     },
-    "generated_utc": "2026-09-21T20:43:31.542722+00:00",
+    "generated_utc": "2026-09-25T16:42:44.437165+00:00",
     "code_version": "0.0.1"
   }
 }

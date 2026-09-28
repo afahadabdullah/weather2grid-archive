@@ -1,6 +1,6 @@
 {
   "version": "0.1.0",
-  "generated_at_utc": "2026-09-28T17:46:38.229800+00:00",
+  "generated_at_utc": "2026-09-28T18:10:33.972083+00:00",
   "cycles": 55,
   "initializations": 17,
   "archive_view": true,
@@ -19,7 +19,7 @@
     "event_name": "CONUS wind outlook",
     "issued_utc": "2026-09-25T11:00:00+00:00",
     "lead_hours": 0.0,
-    "age_hours": 78.78,
+    "age_hours": 79.18,
     "freshness": "in validation mode",
     "synthetic": false,
     "release_gate_passed": false,
