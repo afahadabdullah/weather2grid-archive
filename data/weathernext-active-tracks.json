@@ -1303,6 +1303,37 @@
       "available": true,
       "source": "Google DeepMind WeatherNext 3 Cyclones (ATCF GDMN)",
       "classification": "AI Tropical Cyclone Track Forecast (WeatherNext 3)",
+      "storm_id": "ep192026",
+      "name": "Cyclone EP192026 (WeatherNext AI)",
+      "basin": "EP",
+      "model": "WeatherNext 3 / GDMN",
+      "init_time_utc": "2026-09-28T06:00:00+00:00",
+      "current_index": 0,
+      "model_code": "GDMN",
+      "points": [
+        {
+          "lead_hours": 0,
+          "lat": 12.7,
+          "lon": -136.6,
+          "vmax_kt": 29.0,
+          "pmin_mb": 1005.0,
+          "stage": "XX",
+          "r34_nm": 0.0,
+          "r50_nm": 0.0,
+          "r64_nm": 0.0
+        }
+      ],
+      "forecast_init_time_utc": "2026-09-28T06:00:00+00:00",
+      "advisory_issued_utc": "2026-09-28T06:00:00+00:00",
+      "hazard_source": "weathernext3_100m_wind_proxy",
+      "forecast_provider": "Google DeepMind WeatherNext 3 via BigQuery",
+      "model_version": 3,
+      "pairing_key": "forecast_init_time_utc"
+    },
+    {
+      "available": true,
+      "source": "Google DeepMind WeatherNext 3 Cyclones (ATCF GDMN)",
+      "classification": "AI Tropical Cyclone Track Forecast (WeatherNext 3)",
       "storm_id": "ep912026",
       "name": "Cyclone EP912026 (WeatherNext AI)",
       "basin": "EP",
@@ -1332,7 +1363,7 @@
     }
   ],
   "source": "Google DeepMind WeatherNext 3 Cyclones (AI Ensemble)",
-  "retrieved_at_utc": "2026-09-28T18:10:33.334527+00:00",
+  "retrieved_at_utc": "2026-09-29T19:03:23.401371+00:00",
   "forecast_init_time_utc": "2026-09-28T06:00:00+00:00",
   "hazard_source": "weathernext3_100m_wind_proxy",
   "forecast_provider": "Google DeepMind WeatherNext 3 via BigQuery",
