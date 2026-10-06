@@ -4,7 +4,7 @@
   "event_name": "CONUS wind outlook — 24 h to +144 h (rolling)",
   "issued_utc": "2026-09-23T12:00:00+00:00",
   "lead_hours": 126.0,
-  "age_hours": 294.95,
+  "age_hours": 316.82,
   "freshness": "in validation mode",
   "synthetic": false,
   "release_gate_passed": false,
