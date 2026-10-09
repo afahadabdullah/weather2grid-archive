@@ -1,10 +1,10 @@
 {
-  "cycle_id": "20260928T0600Z_wn3x-conus-20260928-h060",
-  "event_id": "wn3x-conus-20260928-h060",
+  "cycle_id": "20261005T0600Z_wn3x-conus-20261005-h060",
+  "event_id": "wn3x-conus-20261005-h060",
   "event_name": "CONUS wind outlook — 24 h to +60 h (rolling)",
-  "issued_utc": "2026-09-28T06:00:00+00:00",
+  "issued_utc": "2026-10-05T06:00:00+00:00",
   "lead_hours": 42.0,
-  "age_hours": 264.58,
+  "age_hours": 96.58,
   "freshness": "in validation mode",
   "synthetic": false,
   "release_gate_passed": false,
@@ -13,8 +13,8 @@
   "model_artifact_id": "bplus-d306fae20f",
   "hazard_source": "weathernext3_100m_wind_proxy",
   "forecast_provider": "Google DeepMind WeatherNext 3 via BigQuery",
-  "valid_start_utc": "2026-09-30T00:00:00+00:00",
-  "valid_end_utc": "2026-09-30T18:00:00+00:00",
+  "valid_start_utc": "2026-10-07T00:00:00+00:00",
+  "valid_end_utc": "2026-10-07T18:00:00+00:00",
   "forecast_window_hours": 18.0,
   "forecast_horizon_hours": 60.0,
   "input_lead_hours": [
@@ -103,11 +103,11 @@
   "meta": {
     "schema_version": "0.1.0",
     "geography_version": "2024-tiger-cb",
-    "event_id": "wn3x-conus-20260928-h060",
+    "event_id": "wn3x-conus-20261005-h060",
     "event_type": "other_wind",
-    "forecast_init_time_utc": "2026-09-28T06:00:00+00:00",
-    "valid_start_utc": "2026-09-30T00:00:00+00:00",
-    "valid_end_utc": "2026-09-30T18:00:00+00:00",
+    "forecast_init_time_utc": "2026-10-05T06:00:00+00:00",
+    "valid_start_utc": "2026-10-07T00:00:00+00:00",
+    "valid_end_utc": "2026-10-07T18:00:00+00:00",
     "lead_hours": 42.0,
     "forecast_provider": "Google DeepMind WeatherNext 3 via BigQuery",
     "hazard_source": "weathernext3_100m_wind_proxy",
@@ -116,7 +116,7 @@
     "impact_model_version": "0.1.0",
     "model_artifact_id": "bplus-d306fae20f",
     "training_data_cutoff_utc": "2026-01-01T00:00:00+00:00",
-    "input_provenance_hash": "71d9acc041813eadaf35cefa8efde4d6",
+    "input_provenance_hash": "0dc2d2ba41721d657e23bb562daff7ab",
     "input_lead_hours": [
       42.0,
       48.0,
@@ -127,8 +127,8 @@
     "window_hours": 24.0,
     "step_hours": 12.0,
     "windows_overlap": true,
-    "cycle_id": "20260928T0600Z_wn3x-conus-20260928-h060",
-    "product_provenance_hash": "18b1aba050d97068b5515e5a18a4486d",
+    "cycle_id": "20261005T0600Z_wn3x-conus-20261005-h060",
+    "product_provenance_hash": "655ed41994ed551ae147367cbc0e6247",
     "event_name": "CONUS wind outlook — 24 h to +60 h (rolling)",
     "training_event_exclusions": [
       "OT20251228a36ecc"
@@ -153,19 +153,19 @@
     "eligibility": {
       "allowed": true,
       "basis": "chronological",
-      "detail": "cutoff 2026-01-01T00:00:00+00:00 < event start 2026-09-30T00:00:00+00:00"
+      "detail": "cutoff 2026-01-01T00:00:00+00:00 < event start 2026-10-07T00:00:00+00:00"
     },
     "members": 1,
     "counties": 3098,
     "regional": {
-      "expected": 58560.258280998314,
-      "p50": 47344.63794144769,
-      "p90": 88821.77887982667,
-      "p99": 212951.75585626558,
-      "p90_if_independent": 85754.80509097561,
-      "tail_understatement_ratio": 1.035764454080414
+      "expected": 63330.27769802822,
+      "p50": 57106.083529478565,
+      "p90": 102333.67625138619,
+      "p99": 165813.3881398345,
+      "p90_if_independent": 99640.00203475292,
+      "tail_understatement_ratio": 1.0270340642475475
     },
-    "generated_utc": "2026-09-28T18:08:52.059780+00:00",
+    "generated_utc": "2026-10-05T17:44:34.196858+00:00",
     "code_version": "0.0.1"
   }
 }

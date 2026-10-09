@@ -1,0 +1,53 @@
+{
+  "storm_id": "HRRRLOW-20261006T1200Z",
+  "name": "Automated HRRR low detection - not an official forecast",
+  "classification": "Surface low (HRRR-derived, experimental)",
+  "event_id": "hrrr-conus-20261006",
+  "event_name": "CONUS wind outlook",
+  "current_index": 0,
+  "points": [
+    {
+      "valid_utc": "2026-10-07T04:00:00+00:00",
+      "lat": 50.834,
+      "lon": -83.369,
+      "vmax_kt": 22,
+      "pmin_mb": 999,
+      "r34_nm": 0,
+      "r50_nm": 0,
+      "r64_nm": 0,
+      "stage": "Weak Low",
+      "lead_hours": 16
+    },
+    {
+      "valid_utc": "2026-10-07T05:00:00+00:00",
+      "lat": 50.797,
+      "lon": -82.998,
+      "vmax_kt": 22,
+      "pmin_mb": 999,
+      "r34_nm": 0,
+      "r50_nm": 0,
+      "r64_nm": 0,
+      "stage": "Weak Low",
+      "lead_hours": 17
+    },
+    {
+      "valid_utc": "2026-10-07T06:00:00+00:00",
+      "lat": 50.742,
+      "lon": -82.464,
+      "vmax_kt": 21,
+      "pmin_mb": 998,
+      "r34_nm": 0,
+      "r50_nm": 0,
+      "r64_nm": 0,
+      "stage": "Weak Low",
+      "lead_hours": 18
+    }
+  ],
+  "experimental": true,
+  "source": "hrrr_mslma_gust_automated_detection",
+  "synthetic": false,
+  "forecast_init_time_utc": "2026-10-06T12:00:00+00:00",
+  "init_time_utc": "2026-10-06T12:00:00+00:00",
+  "pairing_key": "forecast_init_time_utc",
+  "pairing_basis": "detected from this cycle's own HRRR MSLMA and gust grids"
+}
